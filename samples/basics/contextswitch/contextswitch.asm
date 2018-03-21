@@ -32,20 +32,7 @@
 
 .text
 
-; Interrupt vector table
-.word _startup ; RESET interrupt handler
-.word 0 ; Space for the other interrupts
-
-;
-; The default CPU context is fixed at address 8
-_mainCtx:
-.zero 204 ; registers (r0..pc), movrim0,movrim1, flags register, and floating point registers
-
 ; The two contexts we will be running
-_ctx1:
-.zero 204
-_ctx2:
-.zero 204
 
 ;
 ; Things we need from the common static library
@@ -73,52 +60,48 @@ _startup:
 	; Setup the contexts
 	;
 	; Set the screen columns the contexts will write to (kept in register r4)
-	str [_ctx1 + 4*4], 0
-	str [_ctx2 + 4*4], 0
+	mov r4, 0
+	str [_otherCtx + 4*4], 0
 	
 	; Set screen rows the contexts will write to (kept in the r5 register)
-	str [_ctx1 + 5*4], 1
-	str [_ctx2 + 5*4], 2
+	mov r5, 1
+	str [_otherCtx + 5*4], 2
 
 	; Set character to show (kept in register r6)
-	str [_ctx1 + 6*4], 49
-	str [_ctx2 + 6*4], 50
+	mov r6, 49
+	str [_otherCtx + 6*4], 50
 	
-	; Set what context each context switches to after 1 iteration (register r7)
-	lea r1, [_ctx1]
-	lea r2, [_ctx2]
-	str[_ctx1 + 7*4], r2 ; ctx1 switches to ctx2
-	str[_ctx2 + 7*4], r1 ; ctx2 swtiches to ctx1
+	
+	; Set the addresses to save and load the contexts from
+	; In r7, we keep the address of the context to load.
+	; In r8, we keep the address to save the current context to
+	lea r0, [_mainCtx]
+	lea r1, [_otherCtx]
 
-	; Set where the contexts start execution
+	mov r7, r1 ; mainCtx will switch to otherCtx
+	mov r8, r0 ; where to save mainCtx
+	
+	str [_otherCtx + 7*4], r0 ; otherCtx will switch to mainCtx
+	str [_otherCtx + 8*4], r1 ; where to save otherCtx
+	
+	; Setup a small stack for each context, so we can call C functions
+	lea r0, [_mainStack+1024]
+	mov sp, r0
+	lea r0, [_otherStack+1024]
+	str [_otherCtx + 13*4], r0
+
+	; Setup PC for the other context
 	lea r0, [_contextLoop]
-	str [_ctx1 + 15*4], r0 ; Set context's PC register
-	str [_ctx2 + 15*4], r0 ; Set context's PC register
+	str [_otherCtx + 15*4], r0
 	
-	; Setup a small stack for each context, so we can call functions
-	lea r0, [_ctx1Stack+1024]
-	str [_ctx1 + 13*4], r0
-	lea r0, [_ctx2Stack+1024]
-	str [_ctx2 + 13*4], r0
-
-	; Set the contexts flags registers
-	; This is necessary, so the contexts have proper permissions to execute
-	; ctxswitch, since it's a previleged instruction.
-	; In this case I'm just copying the flags from the main context
+	; Set the contexts flags registers, to make sure we have interrupts
+	; disabled and we are in supervisor mode
 	mrs r0 ; Get our flags register
-	str [_ctx1 + 16*4], r0
-	str [_ctx2 + 16*4], r0
+	str [_otherCtx + 16*4], r0
 
-	; Change execution to ctx1
-	ctxswitch [r1]
+	; Now.... we let the main context run the intended code once
+	; and then at the end it switches contexts
 	
-	; NOTE: We never get here, unless some of the other contexts switch to us
-	; again, which are not doing in this sample
-
-
-;
-; _ctx1/_ctx2 looping
-;
 _contextLoop:
 
 	; Clear the previous screen character
@@ -143,23 +126,25 @@ _contextLoop:
 	bl _pause
 	
 	; Change execution to the other context
-	ctxswitch [r7]
+	; Change to context at [r7], and save current in [r8]
+	ctxswitch [r7], [r8]
 	
 	; loop to beginning when this context gets resumed
 	b _contextLoop 
-
 
 ;*******************************************************************************
 ;								Data
 ;*******************************************************************************
 .data
-	_currentCtx:
-	.word 0
-	
+	_mainCtx:
+	.zero 208
+	_otherCtx:
+	.zero 208
+
 	; These are used as small stacks for the test contexts
-	_ctx1Stack:
+	_mainStack:
 	.zero 1024
-	_ctx2Stack:
+	_otherStack:
 	.zero 1024
 	
 	_sampleName:

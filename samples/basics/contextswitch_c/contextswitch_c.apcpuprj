@@ -1,7 +1,7 @@
 {
 	"format": "Project",
 	"version": 1,
-	"name": "dummy2",
+	"name": "contextswitch_c",
 	"type": 1,
 	"globalconfiguration": {
 		"name": "Global",
@@ -18,18 +18,22 @@
 		{
 			"name": "Debug",
 			"includePaths": [
-
+				"$(SolutionDir)\/common",
+				"$(SolutionDir)\/cstdlib",
+				"$(SolutionDir)\/hardware"
 			],
 			"defines": [
 				"DEBUG"
 			],
-			"compilerOptions": "-v -c99 -O0 -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153",
+			"compilerOptions": "-c99 -O2 -g -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153 -ic1 -ic2",
 			"linkerextralibs": ""
 		},
 		{
 			"name": "Release",
 			"includePaths": [
-
+				"$(SolutionDir)\/common",
+				"$(SolutionDir)\/cstdlib",
+				"$(SolutionDir)\/hardware"
 			],
 			"defines": [
 				"NDEBUG"
@@ -39,15 +43,25 @@
 		}
 	],
 	"dependencies": [
-
+		"common",
+		"hardware",
+		"cstdlib"
 	],
 	"files": [
 		{
-			"path": ".\\boot.asm",
+			"path": ".\\contextswitch_c.c",
+			"bootfile": false
+		},
+		{
+			"path": ".\\contextswitch_c_boot.asm",
 			"bootfile": true
 		},
 		{
-			"path": ".\\main.c",
+			"path": ".\\coroutine.c",
+			"bootfile": false
+		},
+		{
+			"path": ".\\coroutine.h",
 			"bootfile": false
 		}
 	]

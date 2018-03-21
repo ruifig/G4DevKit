@@ -29,4 +29,6 @@ void cpu_setMMUTableAddress(void* tbl, int size)
 	u32 numPages = ram / MMU_PAGE_SIZE;
 	always_assert(numPages==(size/4));
 	int res = hwiCall(HWBUS_CPU, HWCPUFUNC_SET_MMU_TABLE, &data);
+	always_assert(res==HWIERR_SUCCESS);
 }
+

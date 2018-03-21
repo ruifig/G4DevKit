@@ -51,7 +51,7 @@ Ctx* setupAppCtx(void)
 	memset(&appCtx, 0, sizeof(appCtx));
 	appCtx.gregs[CPU_REG_SP] = (u32) &appStack[APPSTACKSIZE];
 	appCtx.gregs[CPU_REG_PC] = (u32) &hardwareTests;
-	appCtx.flags = CPU_FLAGSREG_SUPERVISOR;
+	appCtx.flags[0] = CPU_FLAGSREG_SUPERVISOR;
 	
 	// We return this to the assembly code, which specifies what execution
 	// context to switch to

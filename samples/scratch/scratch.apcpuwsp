@@ -7,6 +7,6 @@
 		".\\dummy\\dummy.apcpuprj",
 		".\\dummy2\\dummy2.apcpuprj"
 	],
-	"startup_project": "scratchpad",
+	"startup_project": "dummy2",
 	"active_configuration": "Debug"
 }

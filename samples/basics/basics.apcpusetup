@@ -4,6 +4,19 @@
 	"format" : "apcpusetup",
 	"setups" : [
 		{
+			"name" : "bench",
+			"description" : "Benchmark",
+			"vms" : [
+				{
+					"opensimulator" : false,
+					"ramkb" : 256,
+					"speedhz" : 2000000000,
+					"autodelete" : true,
+					"rom" : "benchmark"
+				}
+			]
+		},
+		{
 			"name" : "setup1",
 			"description" : "Launches the current project on an existing VM with the debugger, and creates 2 other VMs with helloworld and deviceenum",
 			"vms" : [

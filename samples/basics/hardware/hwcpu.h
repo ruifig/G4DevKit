@@ -10,6 +10,8 @@ int cpu_getIRQQueueSize(void);
 void cpu_enableIRQ(void);
 void cpu_disableIRQ(void);
 void cpu_setMMUTableAddress(void* tbl, int size);
+void cpu_setInterruptHandlingSaveCtx(Ctx* ctx);
+void cpu_setInterruptHandlingLoadCtx(Ctx* ctx);
 
 /*
  * Returns the lowest 32 bits of the cpu tick counter

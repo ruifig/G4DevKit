@@ -1,28 +1,8 @@
-
 ;*******************************************************************************
-; This is required for every application, as some portion at the beginning of
-; the RAM is reserved
+; Bare minimum to print a null terminted string to the screen
 ;*******************************************************************************
 
-; Interrupt Vector Table
-; We only need to set the one that jumps to our main function.
-; In this sample, we don't make use of other Interrupts.
 .text
-.word _startup ; RESET handler
-.word 0  ; Interrupt handler (not used in this sample)
-
-;
-; The default CPU context is fixed at address 8, and we need to reserve that
-; space
-.zero 204 ; registers (r0..pc), rim0,rim1, flags register, and floating point registers
-
-;*******************************************************************************
-; Our main function
-; 
-;*******************************************************************************
-.text
-; When the computer boots, it switches to the context found at address 8
-; and starts executing the RESET handler
 public _startup
 _startup:
 

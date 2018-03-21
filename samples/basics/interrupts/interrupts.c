@@ -51,7 +51,7 @@ void setupAppCtx(void)
 	// Setup the flags register
 	// The value specified (0x04000000), sets Supervisor mode, and enables
 	// IRQs	
-	appCtx.flags = 0x04000000;	
+	appCtx.flags[0] = 0x04000000;	
 }
 
 void printInterruptDetails(
