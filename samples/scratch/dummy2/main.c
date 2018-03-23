@@ -1,8 +1,6 @@
 /*
 
-
-
-
+ddd
    aaa
 
    bbb
@@ -23,12 +21,17 @@ ddd
 	
 *********************************************************************/
 
-#   include    "APCPUSimPCH.h"
-
-#include   "view/FileEditorWnd.h"
+#include "APCPUSimPCH.h"
+#include "view/FileEditorWnd.h"
 
 /*
-
+---
+11111    0000000   0000
+1111
+2222
+3333
+4444
+5555
 
    
 000   111   222  
@@ -1014,9 +1017,8 @@ void FileEditorWnd::vimUpdateStatus(const   char* txt)
 haa
    asdfk   
 
-bbb  dd 
-
-
-
-
-   
+0bbb  dd 
+1adfasdf
+2
+3aaa adsfasdf  
+12
