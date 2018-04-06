@@ -16,6 +16,6 @@
 		".\\benchmark\\benchmark.apcpuprj",
 		".\\contextswitch_c\\contextswitch_c.apcpuprj"
 	],
-	"startup_project": "contextswitch_c",
+	"startup_project": "interrupts",
 	"active_configuration": "Debug"
 }

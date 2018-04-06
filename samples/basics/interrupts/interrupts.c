@@ -10,7 +10,8 @@
 Ctx appCtx;
 
 // The assembly interrupt handler sets this whenever an interrupt happens
-Ctx* interruptedCtx;
+Ctx intrCtx;
+Ctx interruptedCtx;
 
 // The assembly interrupt handler sets this whenever an IRQ interrupt happens
 u32 interruptBus;
@@ -67,10 +68,10 @@ void printInterruptDetails(
 	scr_printfAtXY(x,++y , "Num interrupts: %d", interruptsCount);
 	
 	int yy = y;
-	scr_printfAtXY(x,++y, "Interrupt ctx r0: 0x%X", data0);
-	scr_printfAtXY(x,++y, "Interrupt ctx r1: 0x%X", data1);
-	scr_printfAtXY(x,++y, "Interrupt ctx r2: 0x%X", data2);
-	scr_printfAtXY(x,++y, "Interrupt ctx r3: 0x%X", data3);
+	scr_printfAtXY(x,++y, "Interrupt r0: 0x%X", data0);
+	scr_printfAtXY(x,++y, "Interrupt r1: 0x%X", data1);
+	scr_printfAtXY(x,++y, "Interrupt r2: 0x%X", data2);
+	scr_printfAtXY(x,++y, "Interrupt r3: 0x%X", data3);
 	
 	y = yy;
 	x = 40;
@@ -90,6 +91,7 @@ void printInterruptDetails(
 
 Ctx* handleReset(void)
 {
+	cpu_setInterruptContexts(&interruptedCtx, &intrCtx);
 	scr_init();
 	setupAppCtx();
 	return &appCtx;
@@ -106,7 +108,7 @@ void cpu_handleGeneric(u32 data0, u32 data1, u32 data2, u32 data3)
 		"SWI"
 	};
 
-	printInterruptDetails(interruptedCtx, reasons[interruptReason], data0,
+	printInterruptDetails(&interruptedCtx, reasons[interruptReason], data0,
 			data1, data2, data3);
 	
 	if (interruptReason!=HWCPU_INTERRUPT_SWI) {
@@ -115,14 +117,14 @@ void cpu_handleGeneric(u32 data0, u32 data1, u32 data2, u32 data3)
 		setupAppCtx();
 	} else {
 		// If it's a system call, pass a return value back to the application
-		interruptedCtx->gregs[0] = ++lastSystemCallResult;	
+		interruptedCtx.gregs[0] = ++lastSystemCallResult;	
 	}
 }
 
 void clock_handleTimer(u32 data0, u32 data1, u32 data2, u32 data3)
 {
 	interruptsCount++;
-	printInterruptDetails(interruptedCtx, "IRQ",data0,data1,data2,data3);
+	printInterruptDetails(&interruptedCtx, "IRQ", data0, data1, data2, data3);
 }
 
 //
@@ -130,11 +132,11 @@ void clock_handleTimer(u32 data0, u32 data1, u32 data2, u32 data3)
 //
 InterruptHandler cpu_handlers[] =
 {
-	&cpu_handleGeneric,
-	&cpu_handleGeneric,
-	&cpu_handleGeneric,
-	&cpu_handleGeneric,
-	&cpu_handleGeneric
+	&cpu_handleGeneric, // Abort
+	&cpu_handleGeneric, // Divide by zero
+	&cpu_handleGeneric, // Undefined instruction
+	&cpu_handleGeneric, // Illegal intruction
+	&cpu_handleGeneric  // SWI (System call)
 };
 InterruptHandler clock_handlers[] =
 {
@@ -152,7 +154,7 @@ Ctx* handleInterrupt(u32 data0, u32 data1, u32 data2, u32 data3)
 	interruptsCount++;	
 	// We just forward the handling to the specific driver
 	drivers[interruptBus].handlers[interruptReason](data0, data1, data2, data3);
-	return &appCtx;
+	return &interruptedCtx;
 }
 
 void showMenu(void)

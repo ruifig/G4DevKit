@@ -1,7 +1,32 @@
-/*
+  /*
+
+abc   aa'   12345   '   
+
+abc abc
+
+abc
+
+[ asdfasdfa sdf asdf
+  asd fas dfas
+  a]
+
+
+
+asdfasdf  
+asdasdf
+asdf
+asd
+f
+
+
+   
+   
+   
+
+
 
 ddd
-   aaa
+aaa
 
    bbb
 
@@ -10,10 +35,14 @@ ddd
 ddd
 
 
-
+    
+    
+    
+hi
+  
 */
 /********************************************************************
-	CrazyGaze (http://www.crazygaze.com)
+aCrazyGaze (http://www.crazygaze.com)
 	Author : Rui Figueira
 	Email  : rui@crazygaze.com
 	
@@ -21,8 +50,15 @@ ddd
 	
 *********************************************************************/
 
+   
+   
+   
+
 #include "APCPUSimPCH.h"
 #include "view/FileEditorWnd.h"
+
+
+
 
 /*
 ---
@@ -1016,6 +1052,7 @@ void FileEditorWnd::vimUpdateStatus(const   char* txt)
    
 haa
    asdfk   
+
 
 0bbb  dd 
 1adfasdf

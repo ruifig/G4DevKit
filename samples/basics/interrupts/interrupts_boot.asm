@@ -6,76 +6,43 @@
 ; NOTE: Because when some types of interrupts cause the debugger to go into
 ; break mode, you should detach the debugger after launching the sample
 ;
-; The code flow for this sample goes something like this:
-;	- The Interrupt vector table specifies the handler for the RESET and
-;	  hardware interrupt type.
-;	- When an interrupt occurs, the handler passes control to the respective C
-;	  function. It's easier to only have the bare minimum in assembly, and do
-;	  most of the work in C
-;	- At boot, a RESET interrupt occurs
-;		- The handler passes control to the C function, which setups the
-;		  application context.
-;		- Execution is passed to the application context.
-;	- The application waits for a key to be pressed, and they causes the 
-;	  desired interrupt.
-;	- If the interrupt that occurs is to be considered an error, like for
-;	  example the application tried to read/write/execute an invalid address,
-;	  some variables are updated, and the application is restarted, so we can
-;	  keep running the sample.
-;	- If the interrupt is an IRQ or a SWI (system call), the interrupt is
-;	  handled, some variables udpated and then the application is resumed.
 ;*******************************************************************************
-
-.text
-
-; Interrupt vector table
-.word _resetHandler
-.word _interruptHandler
-
-;
-; The default Execution context is fixed at address 8
-; It's the context the cpu switches to at boot or for interrupts
-;
-; Note that that there is an extra word at the end which is a pointer to the
-; context name. This is so that our interrupt context matches the Ctx struct
-; defined in the C file
-_interruptCtx:
-.zero 204 ; registers (r0...pc), flags register, rim0/rim1, and floating point registers
 
 ; Functions in the C file, which have the real interrupt handlers
 extern _handleReset
 extern _handleInterrupt
+extern _cpu_setInterruptContexts;
 
 ; Variables in the C file
+extern _intrCtx
 extern _interruptedCtx
 extern _interruptBus
 extern _interruptReason
-.text
-
-;*******************************************************************************
-; 		INTERRUPT HANDLERS
-; These just pass control to a C function which does the real work
-; It's easier to work with C than Assembly
-;*******************************************************************************
-
-_resetHandler:
-	bl _handleReset
-	ctxswitch [r0]
 
 ;
-; All interrupts handlers call this, to avoid code duplication
-_interruptHandler:
-	str [_interruptedCtx], lr ; save interrupted context
-
+; Execution starts here when booting
+; We pass execution to a C function, since it's easier to work with C
+.text
+_boot:
+	bl _handleReset ; _handleReset returns the context to load
+	
+	; switch to contex at [r0], and save current at [_intrCtx]
+	; When an interrupt happens, execution will resume right after the ctxswitch
+	lea r4, [_intrCtx]
+	ctxswitch [r0], [r4]
+	
+	_boot1:
 	; Save the Bus and reason that caused the interrupt
-	srl r4, ip, 24
-	str [_interruptBus], r4;
-	and r4, ip, 0x80FFFFFF
-	str [_interruptReason], r4;
+	; NOTE: r0..r3 should not be changed, since they are parameters for the C
+	; interrupt handler function
+	srl r5, ip, 24
+	str [_interruptBus], r5;
+	and r5, ip, 0x80FFFFFF
+	str [_interruptReason], r5;
 	
 	bl _handleInterrupt
-	ctxswitch [r0]
-	; We should never get here...
+	ctxswitch [r0], [r4]
+	b _boot1
 
 
 ;*******************************************************************************
@@ -132,6 +99,3 @@ _causeIRQ:
 ;										DATA
 ;*******************************************************************************
 .data
-	_interruptCtxName:
-
-

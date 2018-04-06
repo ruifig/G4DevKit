@@ -10,8 +10,7 @@ int cpu_getIRQQueueSize(void);
 void cpu_enableIRQ(void);
 void cpu_disableIRQ(void);
 void cpu_setMMUTableAddress(void* tbl, int size);
-void cpu_setInterruptHandlingSaveCtx(Ctx* ctx);
-void cpu_setInterruptHandlingLoadCtx(Ctx* ctx);
+void cpu_setInterruptContexts(Ctx* save, Ctx* load);
 
 /*
  * Returns the lowest 32 bits of the cpu tick counter
@@ -50,14 +49,9 @@ bool cpu_getNextIRQ(IRQData* dst, u8 busFilter);
 	((pages)*MMU_PAGE_SIZE)
 
 
-#define CPU_NUM_GREGS 16
-#define CPU_NUM_FREGS 16
-
 #define CPU_REG_DS 11
 #define CPU_REG_SP 13
 #define CPU_REG_PC 15
-
-#define INTRCTX_ADDR 0x8
 
 #define CPU_FLAGSREG_SUPERVISOR (1<<26)
 #define CPU_FLAGSREG_IRQDISABLED (1<<27)
