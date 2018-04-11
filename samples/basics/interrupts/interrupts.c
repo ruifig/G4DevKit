@@ -8,8 +8,7 @@
 
 // This will be used as the application execution context
 Ctx appCtx;
-
-// The assembly interrupt handler sets this whenever an interrupt happens
+// When an interrupt happens, it switches to this context
 Ctx intrCtx;
 
 // The assembly interrupt handler sets this whenever an IRQ interrupt happens

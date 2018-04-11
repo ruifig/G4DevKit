@@ -31,7 +31,7 @@ _boot:
 	ctxswitch [r0], [r4]
 	
 	_boot1:
-	; Save the Bus and reason that caused the interrupt
+	; Save the bus and reason that caused the interrupt
 	; NOTE: r0..r3 should not be changed, since they are parameters for the C
 	; interrupt handler function
 	srl r5, ip, 24

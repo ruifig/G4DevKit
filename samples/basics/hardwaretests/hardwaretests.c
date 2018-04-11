@@ -15,26 +15,27 @@
 #include "hardwaretest_keyboard.h"
 #include "hardwaretest_nic.h"
 
+// Main context
 static Ctx appCtx;
+// When an interrupt happens, it switches to this context
+Ctx intrCtx;
 
-// The assembly interrupt handler sets this whenever an interrupt happens
-Ctx* interruptedCtx;
 // The assembly interrupt handler sets this whenever an IRQ interrupt happens
-u32 interruptBus;
-u32 interruptReason;
+u32 intrBus;
+u32 intrReason;
 
 #define NUM_DRIVERS 5
 
 // Put all the the drivers together
 DeviceTest deviceTests[NUM_DRIVERS];
 
-Ctx* interruptHandler(u32 data0, u32 data1, u32 data2, u32 data3)
+Ctx* handleInterrupt(u32 data0, u32 data1, u32 data2, u32 data3)
 {
-	always_assert(interruptBus<NUM_DRIVERS);
-	Driver* driver = deviceTests[interruptBus].driver;
-	always_assert(interruptReason < driver->numHanders);	
+	always_assert(intrBus<NUM_DRIVERS);
+	Driver* driver = deviceTests[intrBus].driver;
+	always_assert(intrReason < driver->numHanders);	
 	// We just forward the handling to the specific driver
-	driver->handlers[interruptReason](data0, data1, data2, data3);	
+	driver->handlers[intrReason](data0, data1, data2, data3);	
 	return &appCtx;
 }
 
@@ -43,8 +44,10 @@ void hardwareTests(void);
 /*
 Initializes the application execution context
 */
-Ctx* setupAppCtx(void)
+Ctx* handleReset(void)
 {
+	cpu_setInterruptContexts(&appCtx, &intrCtx);
+	
 	// We use this small memory block as a stack for the application context
 	#define APPSTACKSIZE 1024*10
 	static char appStack[APPSTACKSIZE];
