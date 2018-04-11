@@ -10,7 +10,7 @@ typedef struct Coroutines
 	Coroutine main;
 	Coroutine* curr;
 } Coroutines;
-Coroutines gCo;
+static Coroutines gCo;
 
 static int ctxswitch(Ctx* new, Ctx* curr)
 INLINEASM("\t\
@@ -43,14 +43,12 @@ void finish(Coroutine* co, int yielded)
 	co->next = NULL;
 	co->previous = NULL;
 	
-	// If we it's the currently executing coroutine, then we need to move switch
+	// If it's the currently executing coroutine, then we need to switch
 	// execution to the next one
 	if (co==gCo.curr)
 		co_yield(next, co->result);	
 }
 
-// This is generating incorrect assembly.
-// The "entry" parameter in r2, but not saved across functionc alls
 static void runCoroutine(int yielded , int cookie, CoroutineEntry entry)
 {
 	Coroutine* co = gCo.curr;
@@ -61,7 +59,8 @@ static void runCoroutine(int yielded , int cookie, CoroutineEntry entry)
 //
 // USER API
 //
-void co_create(Coroutine* co, void* stack, int stackSize, CoroutineEntry entry, int cookie)
+void co_create(Coroutine* co, void* stack, int stackSize, CoroutineEntry entry,
+	int cookie)
 {
 	// We we create the first coroutine, we initialize what we need to save
 	// the state of the main program

@@ -78,7 +78,7 @@ int co_yield(Coroutine* co, int yielded);
 
 //! Returns the currently executing coroutine, or NULL if no coroutines were
 // created yet.
-// \Note that the main program is also treated as a coroutine
+// \Note Note that the main program is also treated as a coroutine
 Coroutine* co_this(void);
 
 //! Returns true if there are any coroutines left alive (excluding the main 

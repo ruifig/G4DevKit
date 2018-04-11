@@ -20,8 +20,6 @@ int run(int yielded, int cookie)
 	int x;
 	for(x=0; x<30; x++)
 	{
-		if (x==20)
-			co_destroy((Coroutine*)cookie, 255);
 		scr_printfAtXY(x, yielded, " Coroutine %d", yielded);
 		clk_pauseMS(100);
 		co_yield((Coroutine*)cookie, yielded==1 ? 2 : 1);
