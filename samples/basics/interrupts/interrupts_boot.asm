@@ -15,9 +15,8 @@ extern _cpu_setInterruptContexts;
 
 ; Variables in the C file
 extern _intrCtx
-extern _interruptedCtx
-extern _interruptBus
-extern _interruptReason
+extern _intrBus
+extern _intrReason
 
 ;
 ; Execution starts here when booting
@@ -36,9 +35,9 @@ _boot:
 	; NOTE: r0..r3 should not be changed, since they are parameters for the C
 	; interrupt handler function
 	srl r5, ip, 24
-	str [_interruptBus], r5;
+	str [_intrBus], r5;
 	and r5, ip, 0x80FFFFFF
-	str [_interruptReason], r5;
+	str [_intrReason], r5;
 	
 	bl _handleInterrupt
 	ctxswitch [r0], [r4]

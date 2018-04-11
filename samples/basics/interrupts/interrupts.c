@@ -11,14 +11,13 @@ Ctx appCtx;
 
 // The assembly interrupt handler sets this whenever an interrupt happens
 Ctx intrCtx;
-Ctx interruptedCtx;
 
 // The assembly interrupt handler sets this whenever an IRQ interrupt happens
-u32 interruptBus;
-u32 interruptReason;
+u32 intrBus;
+u32 intrReason;
 
 // Counts the total number of interrupts
-int interruptsCount;
+int intrCount;
 
 //
 // Whenever there is a system call, we set this variable with what the system
@@ -56,16 +55,17 @@ void setupAppCtx(void)
 }
 
 void printInterruptDetails(
-	Ctx* interruptedCtx, const char* title,
+	const char* title,
 	u32 data0, u32 data1, u32 data2, u32 data3)
 {
 	redrawScreen(TRUE);
+	Ctx* ctx = &appCtx;
 	
 	int x = 4;
 	int y = 1;
 	scr_printfAtXY(x,++y , "Interrupt type: %s", title);
-	scr_printfAtXY(x+40,y, "Bus %d, Reason %d", interruptBus, interruptReason);
-	scr_printfAtXY(x,++y , "Num interrupts: %d", interruptsCount);
+	scr_printfAtXY(x+40,y, "Bus %d, Reason %d", intrBus, intrReason);
+	scr_printfAtXY(x,++y , "Num interrupts: %d", intrCount);
 	
 	int yy = y;
 	scr_printfAtXY(x,++y, "Interrupt r0: 0x%X", data0);
@@ -75,10 +75,10 @@ void printInterruptDetails(
 	
 	y = yy;
 	x = 40;
-	scr_printfAtXY(x,++y, "App ctx r0: 0x%X", interruptedCtx->gregs[0]);
-	scr_printfAtXY(x,++y, "App ctx r1: 0x%X", interruptedCtx->gregs[1]);
-	scr_printfAtXY(x,++y, "App ctx r2: 0x%X", interruptedCtx->gregs[2]);
-	scr_printfAtXY(x,++y, "App ctx r3: 0x%X", interruptedCtx->gregs[3]);
+	scr_printfAtXY(x,++y, "App ctx r0: 0x%X", ctx->gregs[0]);
+	scr_printfAtXY(x,++y, "App ctx r1: 0x%X", ctx->gregs[1]);
+	scr_printfAtXY(x,++y, "App ctx r2: 0x%X", ctx->gregs[2]);
+	scr_printfAtXY(x,++y, "App ctx r3: 0x%X", ctx->gregs[3]);
 	scr_printfAtXY(x,++y, "Last SWI call result: %d", lastSystemCallResult);
 }
 
@@ -91,7 +91,7 @@ void printInterruptDetails(
 
 Ctx* handleReset(void)
 {
-	cpu_setInterruptContexts(&interruptedCtx, &intrCtx);
+	cpu_setInterruptContexts(&appCtx, &intrCtx);
 	scr_init();
 	setupAppCtx();
 	return &appCtx;
@@ -108,23 +108,22 @@ void cpu_handleGeneric(u32 data0, u32 data1, u32 data2, u32 data3)
 		"SWI"
 	};
 
-	printInterruptDetails(&interruptedCtx, reasons[interruptReason], data0,
-			data1, data2, data3);
+	printInterruptDetails(reasons[intrReason], data0, data1, data2, data3);
 	
-	if (interruptReason!=HWCPU_INTERRUPT_SWI) {
+	if (intrReason!=HWCPU_INTERRUPT_SWI) {
 		// Anything other than a SWI interrupt is an unrecoverable interrupt
 		// in this sample, so lets reset the application.
 		setupAppCtx();
 	} else {
 		// If it's a system call, pass a return value back to the application
-		interruptedCtx.gregs[0] = ++lastSystemCallResult;	
+		appCtx.gregs[0] = ++lastSystemCallResult;	
 	}
 }
 
 void clock_handleTimer(u32 data0, u32 data1, u32 data2, u32 data3)
 {
-	interruptsCount++;
-	printInterruptDetails(&interruptedCtx, "IRQ", data0, data1, data2, data3);
+	intrCount++;
+	printInterruptDetails("IRQ", data0, data1, data2, data3);
 }
 
 //
@@ -151,10 +150,10 @@ Driver drivers[NUM_DRIVERS] =
 
 Ctx* handleInterrupt(u32 data0, u32 data1, u32 data2, u32 data3)
 {
-	interruptsCount++;	
+	intrCount++;	
 	// We just forward the handling to the specific driver
-	drivers[interruptBus].handlers[interruptReason](data0, data1, data2, data3);
-	return &interruptedCtx;
+	drivers[intrBus].handlers[intrReason](data0, data1, data2, data3);
+	return &appCtx;
 }
 
 void showMenu(void)
