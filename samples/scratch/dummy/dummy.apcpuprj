@@ -43,6 +43,10 @@
 	],
 	"files": [
 		{
+			"path": ".\\derp\\derp.c",
+			"bootfile": false
+		},
+		{
 			"path": ".\\dummy.c",
 			"bootfile": false
 		},

@@ -1,5 +1,6 @@
 #
 /*/*/.vs/
+/samples/*/*/CppProperties.json
 /samples/apcpuos/tmp/
 /samples/basics/tmp/
 /samples/scratch/tmp/
