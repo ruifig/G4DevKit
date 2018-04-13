@@ -14,7 +14,8 @@ extern _interruptReason
 _nicPeerBoot:	
 	extern _setupAppCtx
 	bl _setupAppCtx;
-	ctxswitch [r0] ; switch to the context the handler tells us to
+	; TODO : Fix this
+	ctxswitch [r0], [r0] ; switch to the context the handler tells us to
 
 _interruptHandlerASM:
 	str [_interruptedCtx], lr ; save interrupted context
@@ -27,4 +28,5 @@ _interruptHandlerASM:
 		
 	extern _interruptHandler
 	bl _interruptHandler
-	ctxswitch [r0] ; switch to the context the handler tells us to
+	; TODO : Fix this
+	ctxswitch [r0], [r0] ; switch to the context the handler tells us to

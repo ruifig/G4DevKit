@@ -1,5 +1,6 @@
 #include "scratchtest.h"
 #include "misc.h"
+#include "dummy.h"
 
 typedef struct
 {
@@ -9,7 +10,7 @@ typedef struct
 
 int derp(int a)
 {
-	return 1;
+	return fromDummy(a, a);
 }
 
 void someFunc()

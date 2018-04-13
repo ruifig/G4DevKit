@@ -34,7 +34,7 @@ _interruptH:
 public _other
 _other:
 	lea r10, [ctx]
-	ctxswitch [r10]
+	ctxswitch [r10], [r10]
 
 .data
 	_stackL:

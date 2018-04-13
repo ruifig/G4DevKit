@@ -1,5 +1,11 @@
+#include "scratchtest.h"
 
-void main(void)
+int fromDummy(int a, int b)
+{
+	return aa + b;
+}
+
+int main(void)
 {
 	return;
 	return 0;
