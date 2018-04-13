@@ -5,14 +5,10 @@
 #ifndef _APCPU_BOOT_H_
 #define _APCPU_BOOT_H_
 
-// Markers to check the size of the interrupt context.
-extern const int intrCtxStart;
-extern const int intrCtxEnd;
-
 /*!
  * Ram amount, in bytes
  */
-extern const int ramAmount;
+extern unsigned int ramAmount;
 
 /*!
  */
@@ -28,8 +24,6 @@ typedef struct ROMProcessInfo
 extern ROMProcessInfo processInfo;
 
 #define NO_INTERRUPT -1
-extern const int krn_currIntrBusAndReason;
-extern const int krn_prevIntrBusAndReason;
 
 #endif
 

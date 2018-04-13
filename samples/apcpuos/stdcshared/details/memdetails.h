@@ -13,7 +13,6 @@ void _getmemstats(size_t* totalUsed, size_t* totalFree, size_t* maxAlloc);
 	#define MEMDEBUG 1
 #endif
 
-
 //
 // NOTE: Don't use these directly . Use the macros bellow (e.g: malloc)
 //

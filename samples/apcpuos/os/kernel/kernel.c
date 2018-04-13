@@ -6,7 +6,6 @@
 #include "kerneldebug.h"
 #include "boot/boot.h"
 #include "hw/hwscreen.h"
-#include "hw/hwcpu.h"
 #include "hw/hwclock.h"
 #include "hw/hwkeyboard.h"
 #include "hw/hwdisk.h"
@@ -22,8 +21,9 @@
 
 Kernel krn;
 bool krn_countSwiTime;
-
-extern CpuCtx* krn_interruptedCtx;
+uint32_t ramAmount;
+int krn_currIntrBusAndReason;
+int krn_prevIntrBusAndReason;
 
 void krn_spin(unsigned int ms)
 {
@@ -47,8 +47,14 @@ void krn_spin(unsigned int ms)
  */
 void* krn_preboot(void)
 {
+	ramAmount = hw_cpu_getRamAmount();
 	krn.kernelPcb = prc_initKernelPrc();
 	return krn.kernelPcb->mainthread->stackTop;
+}
+
+CpuCtx* krn_getIntrCtx(void)
+{
+	return &krn.kernelPcb->mainthread->ctx;
 }
 
 //
@@ -57,13 +63,8 @@ void* krn_preboot(void)
 // The IDLE task just powers down the cpu until an interrupt happens
 uint32_t krn_idleTask(uint32_t p1)
 {
-
 #if TEST_TASKBOOT_FAIL
 	krn_forceCrash();
-#endif
-
-#if TEST_UNEXPECTED_CTXSWITCH
-	hw_cpu_ctxswitch((CpuCtx*)(&intrCtxStart));
 #endif
 
 	while(TRUE) {
@@ -116,11 +117,6 @@ CpuCtx* krn_init()
 	// Small pause so we can look at the devices
 	krn_spin(2000);
 
-	KERNEL_DEBUG("size(CpuCtx)=%u", sizeof(CpuCtx));
-	size_t intrCtxSize =
-		(uint32_t)(&intrCtxEnd) - ((uint32_t)(&intrCtxStart));
-	kernel_check(sizeof(CpuCtx)==intrCtxSize);
-	
 	{
 		uint32_t timer=0;
 		uint32_t ms=THREAD_TIME_SLICE;
@@ -176,26 +172,31 @@ CpuCtx* krn_init()
 	krn_forceCrash();
 #endif
 
-	krn.nextTcb = krn.idlethread;
-	return krn.nextTcb->cpuctx;
+	krn.currTcb = krn.idlethread;
+	
+	// Setup interrupt handing
+	hw_cpu_setIntrLoadAddr((uint32_t)&krn.kernelPcb->mainthread->ctx);
+	hw_cpu_setIntrSaveAddr((uint32_t)&krn.currTcb->ctx);
+	
+	return &krn.currTcb->ctx;
 }
 
 void krn_pickNextTcb(void)
 {
 	// Grab a thread to run, if any is available
-	if (queue32_pop(&krn.tcbReady, (int*)(&krn.nextTcb))) {
+	if (queue32_pop(&krn.tcbReady, (int*)(&krn.currTcb))) {
 		// put it back at the end of the ready queue
-		queue32_push(&krn.tcbReady, (int)krn.nextTcb);
+		queue32_push(&krn.tcbReady, (int)krn.currTcb);
 	} else {
 		// No threads ready to run, so run the idle process
-		krn.nextTcb = krn.idlethread;
+		krn.currTcb = krn.idlethread;
 	}
 	
 	// setup TLS
-	if (krn.nextTcb->tlsVarPtr) {
-		prc_giveAccessToKernel(krn.nextTcb->pcb, true);
-		*krn.nextTcb->tlsVarPtr = krn.nextTcb->tlsVarValue;
-		prc_giveAccessToKernel(krn.nextTcb->pcb, false);
+	if (krn.currTcb->tlsVarPtr) {
+		prc_giveAccessToKernel(krn.currTcb->pcb, true);
+		*krn.currTcb->tlsVarPtr = krn.currTcb->tlsVarValue;
+		prc_giveAccessToKernel(krn.currTcb->pcb, false);
 	}	
 }
 
@@ -213,21 +214,15 @@ static void krn_leaveTcb(TCB* tcb, bool isSwiTime)
 	
 	double duration = hw_clk_currSecs-lasttime;
 	
-	// Note: krn.interruptedTcb can be NULL if the current thread/process
+	// Note: krn.currTcb can be NULL if the current thread/process
 	// was deleted
-	if (isSwiTime && krn.interruptedTcb)
-		krn.interruptedTcb->pcb->stats.cpuTimeswi += duration;
+	if (isSwiTime && krn.currTcb)
+		krn.currTcb->pcb->stats.cpuTimeswi += duration;
 	else
 		tcb->pcb->stats.cpuTime += duration;
 		
 	lasttime = hw_clk_currSecs;
 }
-
-void krn_panicUnexpectedCtxSwitch(void)
-{
-	krn_panic("Unexpected explicit switch to interrupt context.","");
-}
-
 
 CpuCtx* krn_handleInterrupt(
 			uint32_t data0, uint32_t data1, uint32_t data2, uint32_t data3)
@@ -243,17 +238,7 @@ CpuCtx* krn_handleInterrupt(
 		// note: panic never returns, so we never get here
 	}
 
-	//KERNEL_DEBUG("interruptedCtx=%d", (uint32_t)interruptedCtx);
-	if (krn_interruptedCtx==(CpuCtx*)INTRCTX_ADDR) {
-		krn.interruptedTcb = krn.kernelPcb->mainthread;
-	} else { 
-		// As part of the processes/threads creation, the CPU CTX is located
-		// right after the TCB, so we can allocate memory for both in one go.
-		// Therefore, to get the TCB from the interrupted CTX, we do the -1
-		krn.interruptedTcb = ((TCB*)(krn_interruptedCtx))-1;
-	}
-	
-	krn_leaveTcb(krn.interruptedTcb, false);	
+	krn_leaveTcb(krn.currTcb, false);	
 	
 	krn_countSwiTime = false;
 
@@ -284,5 +269,6 @@ CpuCtx* krn_handleInterrupt(
 	
 	krn_leaveTcb(krn.kernelPcb->mainthread, krn_countSwiTime);
 		
-	return krn.nextTcb->cpuctx;
+	hw_cpu_setIntrSaveAddr((uint32_t)&krn.currTcb->ctx);
+	return &krn.currTcb->ctx;
 }

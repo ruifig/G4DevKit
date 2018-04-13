@@ -46,7 +46,6 @@ void _mem_init(void* start, size_t size)
 
 }
 
-
 void* _malloc_impl( size_t size
 #if MEMDEBUG
 	, int line, const char* file

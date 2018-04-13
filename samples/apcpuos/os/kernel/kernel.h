@@ -6,6 +6,7 @@
 #define _APCPU_KERNEL_H_
 
 #include "kerneldefs.h"
+#include "hw/hwcpu.h"
 #include "utilshared/queue32.h"
 #include "utilshared/priorityqueue32.h"
 #include "utilshared/priorityqueue.h"
@@ -25,12 +26,8 @@ typedef struct Kernel {
 
 	struct PCB* kernelPcb;
 	
-	// While handling an interrupt, points to the thread that was interrupted
-	// NOTE: Only valid while handling an interrupt
-	struct TCB* interruptedTcb;
-
-	// The thread to run next. This is set by the task scheduler
-	struct TCB* nextTcb;
+	// The currently running thread. This is set by the task scheduler
+	struct TCB* currTcb;
 	
 	// The cpu idle process, which runs whenever there are no other processes
 	// ready to run.

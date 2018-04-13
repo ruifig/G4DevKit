@@ -7,9 +7,21 @@
 
 #include "hwcommon.h"
 
-#define HW_CPU_FUNC_GETRAMAMMOUNT 0
+#define HW_CPU_FUNC_GETRAMAMOUNT 0
 #define HW_CPU_FUNC_GETIRQQUEUESIZE 1
 #define HW_CPU_FUNC_SETMMUTABLE 2
+#define HW_CPU_FUNC_SETINTRSAVEADDR 3
+#define HW_CPU_FUNC_SETINTRLOADADDR 4
+
+typedef struct CpuCtx
+{
+	uint32_t gregs[CPU_NUM_GREGS]; // general purpose registers
+	uint32_t flags;
+	uint32_t reserved;
+	uint32_t rims[2];
+	double fregs[CPU_NUM_FREGS]; // floating point registers
+} CpuCtx;
+
 
 hw_Drv* hw_cpu_ctor(hw_BusId);
 void hw_cpu_dtor(hw_Drv* drv);
@@ -30,6 +42,7 @@ mrs r0 ; load flags register\n\t\
 or r0, r0, 1<<27 ; set bit 27 \n\t\
 msr r0 ; set flags register");
 
+// TODO : Is this correct with the new cpu refactoring?
 uint32_t hw_cpu_nextIRQ(
 	__reg("r0") int busid,
 	__reg("r4") u32* data0, __reg("r5") u32* data1)
@@ -77,17 +90,23 @@ hlt");
 /*
  * Emits a ctwswitch instruction
  */
- void hw_cpu_ctxswitch(__reg("r0") void* ctx)
- INLINEASM("\t\
- ctxswitch [r0]");
+int hw_cpu_ctxswitch(__reg("r0") CpuCtx* new, __reg("r1") CpuCtx* curr)
+INLINEASM("\t\
+ctxswitch [r0], [r1]");
 
- const char* hw_cpu_getIntrReasonMsg(uint32_t reason);
+const char* hw_cpu_getIntrReasonMsg(uint32_t reason);
 
+/*
+ * Returns how much ram the system has, in bytes
+ */
+#define hw_cpu_getRamAmount() \
+	hw_hwiSimple0(HWBUS_CPU, HW_CPU_FUNC_GETRAMAMOUNT)
+	
 /*
  * Returns how many queued up IRQs we have
  */
 #define hw_cpu_getIRQQueueSize() \
-	hw_hwiSimple0(HWBUS_CPU,HW_CPU_FUNC_GETIRQQUEUESIZE)
+	hw_hwiSimple0(HWBUS_CPU, HW_CPU_FUNC_GETIRQQUEUESIZE)
 
 /*
  * Checks if the specified key is pressed.
@@ -97,5 +116,17 @@ hlt");
  */
 #define hw_cpu_setMMUTable(mmuTablePtr) \
 	hw_hwiSimple1(HWBUS_CPU, HW_CPU_FUNC_SETMMUTABLE, mmuTablePtr)
+
+/*
+ * Sets the address of the context to load when an interrupt happens
+ */
+#define hw_cpu_setIntrLoadAddr(addr) \
+	hw_hwiSimple1(HWBUS_CPU, HW_CPU_FUNC_SETINTRLOADADDR, addr)
+	
+/*
+ * Sets where to save the interrupted context when an interrupt happens
+ */
+#define hw_cpu_setIntrSaveAddr(addr) \
+	hw_hwiSimple1(HWBUS_CPU, HW_CPU_FUNC_SETINTRSAVEADDR, addr)
 
 #endif

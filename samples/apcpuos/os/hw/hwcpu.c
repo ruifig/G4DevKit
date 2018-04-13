@@ -65,14 +65,14 @@ static void hw_cpu_irqHandler(uint32_t reason, u32 data0, u32 data1)
 			// TODO : Instead of doing a kernel panic, close the offender app
 			krn_panic(
 				"TASK %d:%s, REASON '%s' DATA 0x%X,0x%X",
-				krn.interruptedTcb->pcb->info.pid,
-				krn.interruptedTcb->pcb->info.name,
+				krn.currTcb->pcb->info.pid,
+				krn.currTcb->pcb->info.name,
 				cpuIntrStr[reason], data0, data1);
 		break;
 		
 		case 4: // SWI (System Call)
 		{
-			int* regs = (int*)krn.interruptedTcb->cpuctx;
+			int* regs = (int*)&krn.currTcb->ctx;
 			uint32_t id = regs[SYSCALL_ID_REGISTER];
 			bool ok;
 			if (id<kSysCall_Max) {
@@ -82,17 +82,17 @@ static void hw_cpu_irqHandler(uint32_t reason, u32 data0, u32 data1)
 				// offender app
 				KERNEL_DEBUG(
 					"TASK %d:%s, Invalid SWI ID '%u'",
-					krn.interruptedTcb->pcb->info.pid,
-					krn.interruptedTcb->pcb->info.name, id);
+					krn.currTcb->pcb->info.pid,
+					krn.currTcb->pcb->info.name, id);
 				ok = false;
 			}
 			
 			if (!ok) {
 				KERNEL_DEBUG(
 					"TASK %d:%s, killed calling SWI ID '%u'",
-					krn.interruptedTcb->pcb->info.pid,
-					krn.interruptedTcb->pcb->info.name, id);
-				prc_delete(krn.interruptedTcb->pcb);
+					krn.currTcb->pcb->info.pid,
+					krn.currTcb->pcb->info.name, id);
+				prc_delete(krn.currTcb->pcb);
 				
 				// No need to set the next thread, as prc_delete will
 				// eventually trigger that already

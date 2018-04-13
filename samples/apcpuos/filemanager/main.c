@@ -171,7 +171,7 @@ void update_filelist(const char * path)
 			
 			char line[40];
 			memset(line, 0, 40);
-			sprintf(line, "%c %s%s %d", ((item.type == T_DIR)?'d':'f'),
+			sprintf(line, "%c %s%s %u", ((item.type == T_DIR)?'d':'f'),
 				item.path, spaces, item.size);
 						
 			selectionList_add(list_dir_entries, line);

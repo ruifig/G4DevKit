@@ -62,9 +62,5 @@
 // If 1, causes task initialization to fail, to test task failure detection
 #define TEST_TASKBOOT_FAIL 0
 
-// If 1, causes the an explicit ctxswitch to the kernel (which is not supported)
-#define TEST_UNEXPECTED_CTXSWITCH 0
-
-
 
 #endif

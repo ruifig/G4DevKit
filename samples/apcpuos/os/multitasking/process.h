@@ -7,6 +7,7 @@
 
 #include <stddef_shared.h>
 #include "kernel/kerneldefs.h"
+#include "hw/hwcpu.h"
 #include "extern/tlsf/tlsf.h"
 #include "utilshared/linkedlist.h"
 #include "appsdk/kernel_shared/syscalls_shared.h"
@@ -19,14 +20,6 @@
 #define PID_NONE 0
 #define PID_KERNEL 1
 #define PID_INVALID 255
-
-typedef struct CpuCtx
-{
-	uint32_t gregs[CPU_NUM_GREGS]; // general purpose registers
-	uint32_t flags; // flags register
-	uint32_t rims[2];
-	double fregs[CPU_NUM_FREGS]; // floating point registers
-} CpuCtx;
 
 //
 // PCB stands for Process Control Block
@@ -108,7 +101,7 @@ typedef struct TCB
 	struct TCB* next;
 	struct TCB* previous;
 	
-	struct CpuCtx* cpuctx;
+	struct CpuCtx ctx;
 	struct PCB* pcb; // Process this thread belongs to
 	
 	// Handle to be used by the application to refer to this thread

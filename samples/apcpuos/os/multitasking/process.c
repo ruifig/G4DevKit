@@ -4,7 +4,6 @@
 
 #include "process.h"
 #include "boot/boot.h"
-#include "hw/hwcpu.h"
 #include "hw/hwclock.h"
 #include "hw/hwscreen.h"
 #include "kernel/kernel.h"
@@ -140,7 +139,7 @@ static bool prc_setupMemory(
 	// if this is the kernel process initialization, it will crash since this
 	// thread context is in protected memory
 	TCB* tcb = pcb->mainthread;
-	tcb->cpuctx->gregs[CPU_REG_DS] = (uint32_t)pcb->ds;	
+	tcb->ctx.gregs[CPU_REG_DS] = (uint32_t)pcb->ds;	
 	
 	//
 	// Stack
@@ -184,8 +183,8 @@ static bool prc_setupMemory(
 
 void* prc_getPtrToShared(PCB* pcb, void* var)
 {
-	u32 offset = (u32)var - rootthread.cpuctx->gregs[CPU_REG_DS];
-	return (void*)(pcb->mainthread->cpuctx->gregs[CPU_REG_DS] + offset);
+	u32 offset = (u32)var - rootthread.ctx.gregs[CPU_REG_DS];
+	return (void*)(pcb->mainthread->ctx.gregs[CPU_REG_DS] + offset);
 }
 
 PCB* prc_initKernelPrc(void)
@@ -201,19 +200,18 @@ PCB* prc_initKernelPrc(void)
 	
 	//
 	// Setup main thread
-	rootthread.cpuctx = (CpuCtx*)(&intrCtxStart);
 	rootthread.pcb = &rootpcb;
 	// marking as kernel, so we don't try to run explicitly
 	rootthread.state = TCB_STATE_KERNEL;
 	// Point to self, to close the circle
 	linkedlist_addAfter(&rootthread, &rootthread);
-	rootthread.cpuctx->flags =
-		(rootthread.cpuctx->flags & 0xFF000000) |
+	rootthread.ctx.flags =
+		(rootthread.ctx.flags & 0xFF000000) |
 		MMU_KEY(rootpcb.info.pid, rootpcb.info.pid,rootpcb.info.pid);
 	
 	// TODO : Fix this. The kernel shouldn't have automatic access to the 
 	// entire memory.
-	//rootthread.cpuctx->flags = (rootthread.cpuctx->flags & 0xFF000000);
+	//rootthread.ctx.flags = (rootthread.ctx.flags & 0xFF000000);
 		
 	HeapInfo heapInfo;
 	bool ret = prc_setupMemory(
@@ -236,26 +234,23 @@ TCB* prc_createThread(PCB* pcb, ThreadEntryFuncWrapper entryFuncWrapper,
 		return FALSE;
 	}
 	
-	//
-	// Allocate TCB+CpuCtx in one chunk
-	TCB* tcb = calloc(sizeof(TCB)+sizeof(CpuCtx));
+	TCB* tcb = calloc(sizeof(TCB));
 	if (!tcb) goto error;
 	KERNEL_DEBUG("TCB for %s : %u", pcb->info.name, (uint32_t)tcb);
 	
 	//
 	// Initialize TCB
 	tcb->pcb = pcb;
-	tcb->cpuctx = (CpuCtx*)(tcb+1); // Cpu state is right after the process data
 	tcb->stackBottom = PAGE_TO_ADDR(firstPage);
 	tcb->stackTop = tcb->stackBottom + PAGES_TO_SIZE(stackNumPages);	
 	tcb->state = TCB_STATE_READY;
 	// setup registers
-	tcb->cpuctx->gregs[0] = (uint32_t)entryFunc;
-	tcb->cpuctx->gregs[1] = (uint32_t)userdata;
-	tcb->cpuctx->gregs[CPU_REG_DS] = (uint32_t)pcb->ds;
-	tcb->cpuctx->gregs[CPU_REG_SP] = (uint32_t)tcb->stackTop;
-	tcb->cpuctx->gregs[CPU_REG_PC] = (uint32_t)entryFuncWrapper;
-	tcb->cpuctx->flags =
+	tcb->ctx.gregs[0] = (uint32_t)entryFunc;
+	tcb->ctx.gregs[1] = (uint32_t)userdata;
+	tcb->ctx.gregs[CPU_REG_DS] = (uint32_t)pcb->ds;
+	tcb->ctx.gregs[CPU_REG_SP] = (uint32_t)tcb->stackTop;
+	tcb->ctx.gregs[CPU_REG_PC] = (uint32_t)entryFuncWrapper;
+	tcb->ctx.flags =
 		0x00000000 |
 		(privileged ? (1<<CPU_FLAGSREG_SUPERVISOR) : 0) |
 		(pcb->info.pid<<16 | pcb->info.pid<<8 | pcb->info.pid);
@@ -380,7 +375,7 @@ PCB* prc_create(const char* name, PrcEntryFunc entryfunc, bool privileged,
 
 	//
 	// Allocate TCB+CpuCtx
-	TCB* tcb = calloc(sizeof(TCB)+sizeof(CpuCtx));
+	TCB* tcb = calloc(sizeof(TCB));
 	if (!tcb) goto out2;
 	KERNEL_DEBUG("TCB for %s : %u", name, (uint32_t)tcb);
 
@@ -390,7 +385,6 @@ PCB* prc_create(const char* name, PrcEntryFunc entryfunc, bool privileged,
 	pcb->info.name[PRC_NAME_SIZE-1] = '\0';
 	pcb->info.pid = pidCounter+1; // We only increment the pidCounter itself if we succefully create the process
 	pcb->mainthread = tcb;
-	tcb->cpuctx = (CpuCtx*)(tcb+1); // Cpu state is right after the process data
 	KERNEL_DEBUG("PCB %s: pid=%u, MainThread ctx=0x%X",
 		pcb->info.name, pcb->info.pid, tcb->cpuctx );
 
@@ -415,11 +409,11 @@ PCB* prc_create(const char* name, PrcEntryFunc entryfunc, bool privileged,
 	tcb->pcb = pcb;
 	tcb->state = TCB_STATE_READY;
 	// setup registers
-	tcb->cpuctx->gregs[0] = (uint32_t)entryfunc;
-	tcb->cpuctx->gregs[CPU_REG_DS] = (uint32_t)pcb->ds;
-	tcb->cpuctx->gregs[CPU_REG_SP] = (uint32_t)tcb->stackTop;
-	tcb->cpuctx->gregs[CPU_REG_PC] = (uint32_t)app_startup;
-	tcb->cpuctx->flags =
+	tcb->ctx.gregs[0] = (uint32_t)entryfunc;
+	tcb->ctx.gregs[CPU_REG_DS] = (uint32_t)pcb->ds;
+	tcb->ctx.gregs[CPU_REG_SP] = (uint32_t)tcb->stackTop;
+	tcb->ctx.gregs[CPU_REG_PC] = (uint32_t)app_startup;
+	tcb->ctx.flags =
 		0x00000000 |
 		(privileged ? (1<<CPU_FLAGSREG_SUPERVISOR) : 0) |
 		MMU_KEY(pcb->info.pid, pcb->info.pid, pcb->info.pid);

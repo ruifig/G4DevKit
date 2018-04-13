@@ -117,7 +117,7 @@ bool mmu_check_user(struct PCB *pcb, MMUMemAccess access, void* addr, size_t siz
 	if (page1>=mmu.numPages || page2>=mmu.numPages)
 		return FALSE;
 
-	uint32_t processKeys = pcb->mainthread->cpuctx->flags & 0x00FFFFFF;
+	uint32_t processKeys = pcb->mainthread->ctx.flags & 0x00FFFFFF;
 	uint32_t prckeymask = processKeys & access;
 	uint32_t p1mask = access & mmu.table[page1];
 	uint32_t p2mask = access & mmu.table[page2];
