@@ -2,7 +2,7 @@
 
 int fromDummy(int a, int b)
 {
-	return aa+ b;
+	return a+ b;
 }
 
 int main(void)
