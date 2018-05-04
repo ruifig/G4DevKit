@@ -255,6 +255,6 @@ void mmu_init(size_t krnFirstPage, size_t krnNumPages, void* mmutableaddr)
 	hw_cpu_setMMUTable((uint32_t)(mmu.table));
 
 	// Switch back to our own context, to trigger the mmu to update
-	hw_cpu_ctxswitch( (CpuCtx*)(&intrCtxStart) );
-	
+	// TODO : Is something like this needed now that ctx_switch has changed?
+	//hw_cpu_ctxswitch( (CpuCtx*)(&intrCtxStart) );
 }

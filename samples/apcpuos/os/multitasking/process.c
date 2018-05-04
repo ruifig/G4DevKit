@@ -87,6 +87,11 @@ void prc_giveAccessToKernel(PCB* pcb, bool status)
 }
 
 
+static void prc_setKrnDS(__reg("r0") void* ds)
+INLINEASM("\t\
+mov r11, r0\n\t\
+");
+
 static bool prc_setupMemory(
 	PCB* pcb,
 	size_t stackSize, size_t heapSize, size_t extraSize,
@@ -140,6 +145,11 @@ static bool prc_setupMemory(
 	// thread context is in protected memory
 	TCB* tcb = pcb->mainthread;
 	tcb->ctx.gregs[CPU_REG_DS] = (uint32_t)pcb->ds;	
+	// Set our own DS register, if we are initializign the Kernel's PCB
+	if (isKrn)
+	{
+		prc_setKrnDS(pcb->ds);
+	}
 	
 	//
 	// Stack
@@ -386,7 +396,7 @@ PCB* prc_create(const char* name, PrcEntryFunc entryfunc, bool privileged,
 	pcb->info.pid = pidCounter+1; // We only increment the pidCounter itself if we succefully create the process
 	pcb->mainthread = tcb;
 	KERNEL_DEBUG("PCB %s: pid=%u, MainThread ctx=0x%X",
-		pcb->info.name, pcb->info.pid, tcb->cpuctx );
+		pcb->info.name, pcb->info.pid, &tcb->ctx );
 
 	//
 	// Setup heap area (for stack, dynamic memory, and shared data, stc)
@@ -399,7 +409,7 @@ PCB* prc_create(const char* name, PrcEntryFunc entryfunc, bool privileged,
 	pcb->info.heap_start = heapInfo.start;
 	pcb->info.heap_size = heapInfo.size;
 		
-	// Allocate handle the the main thread
+	// Allocate handle for the main thread
 	tcb->handle = handles_create(pcb->info.pid, kHandleType_Thread, tcb);
 	if (tcb->handle==INVALID_HANDLE)
 		goto out3;
@@ -494,7 +504,7 @@ void prc_deletethread(TCB* tcb)
 	tcb->state = TCB_STATE_DONE;
 	linkedlist_remove(tcb);
 
-	if (krn.interruptedTcb==tcb)
+	if (krn.currTcb==tcb)
 		krn_pickNextTcb();
 		
 	free(tcb);
@@ -503,7 +513,7 @@ void prc_deletethread(TCB* tcb)
 void prc_deleteImpl(PCB* pcb)
 {
 	kernel_check(pcb!=&rootpcb);
-	bool isCurrentPCB = (krn.interruptedTcb->pcb==pcb);
+	bool isCurrentPCB = (krn.currTcb->pcb==pcb);
 	KERNEL_DEBUG("Deleting process %s: %Xh...", pcb->info.name, pcb);
 	
 	handles_destroyPrcHandles(pcb->info.pid);

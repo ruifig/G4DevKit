@@ -29,8 +29,8 @@ static bool check_user_ptr(struct PCB *pcb, MMUMemAccess access, void* addr,
 
 bool syscall_createProcess(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	ProcessCreateInfo* info = (ProcessCreateInfo*) regs[0];
 	const char* args = (const char*) regs[1];
@@ -87,9 +87,9 @@ bool syscall_yield(void)
 
 bool syscall_sleep(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	int* regs = (int*)&krn.currTcb->ctx;
 	int ms = regs[0]; // sleep duration in milliseconds
-	prc_putThreadToSleep(krn.interruptedTcb, regs[0]);	
+	prc_putThreadToSleep(krn.currTcb, regs[0]);	
 	// Grab the next thread to run
 	krn_pickNextTcb();
 	return TRUE;
@@ -97,32 +97,32 @@ bool syscall_sleep(void)
 
 bool syscall_getStackSize(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
-	regs[0] = krn.interruptedTcb->stackTop - krn.interruptedTcb->stackBottom;
+	int* regs = (int*)&krn.currTcb->ctx;
+	regs[0] = krn.currTcb->stackTop - krn.currTcb->stackBottom;
 	return TRUE;
 }
 
 bool syscall_getUsedStackSize(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
-	regs[0] = (u32)krn.interruptedTcb->stackTop - regs[CPU_REG_SP];
+	int* regs = (int*)&krn.currTcb->ctx;
+	regs[0] = (u32)krn.currTcb->stackTop - regs[CPU_REG_SP];
 	return TRUE;
 }
 
 bool syscall_getThreadHandle(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
-	regs[0] = (u32)krn.interruptedTcb->handle;
+	int* regs = (int*)&krn.currTcb->ctx;
+	regs[0] = (u32)krn.currTcb->handle;
 	return TRUE;
 }
 
 bool syscall_createThread(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
-	uint8_t pid = krn.interruptedTcb->pcb->info.pid;
+	int* regs = (int*)&krn.currTcb->ctx;
+	uint8_t pid = krn.currTcb->pcb->info.pid;
 
 	TCB* tcb = prc_createThread(
-		krn.interruptedTcb->pcb,
+		krn.currTcb->pcb,
 		// Thread entry function wrapper for the appsdk
 		(ThreadEntryFuncWrapper)regs[0],
 		// Real thread entry function
@@ -143,36 +143,36 @@ bool syscall_createThread(void)
 
 bool syscall_setThreadTLS(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
-	uint8_t pid = krn.interruptedTcb->pcb->info.pid;
+	int* regs = (int*)&krn.currTcb->ctx;
+	uint8_t pid = krn.currTcb->pcb->info.pid;
 	uint32_t* tlsVarPtr = (uint32_t*)regs[0];
 	uint32_t tlsVarValue = regs[1];
-	PCB* pcb = krn.interruptedTcb->pcb;
+	PCB* pcb = krn.currTcb->pcb;
 
 	// Make sure the process can write to the address it has given us
 	if (!check_user_ptr(pcb, kMMUAccess_Write, tlsVarPtr, sizeof(*tlsVarPtr)))
 		return FALSE;
 	
-	krn.interruptedTcb->tlsVarPtr = tlsVarPtr;
-	krn.interruptedTcb->tlsVarValue = tlsVarValue;
+	krn.currTcb->tlsVarPtr = tlsVarPtr;
+	krn.currTcb->tlsVarValue = tlsVarValue;
 		
 	return TRUE;
 }
 
 bool syscall_closeHandle(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	int* regs = (int*)&krn.currTcb->ctx;
 	HANDLE h = (HANDLE)regs[0];
-	bool res = handles_destroy(h, krn.interruptedTcb->pcb->info.pid);
+	bool res = handles_destroy(h, krn.currTcb->pcb->info.pid);
 	regs[0] = res;
 	return TRUE;
 }
 
 bool syscall_getMessage(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	TCB* tcb = krn.interruptedTcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	TCB* tcb = krn.currTcb;
+	int* regs = (int*)&tcb->ctx;
 	ThreadMsg* msg = (ThreadMsg*)regs[0];
 	bool waitForMessage = regs[1];
 
@@ -197,7 +197,7 @@ bool syscall_getMessage(void)
 			//KERNEL_DEBUG("Thread %8s:%u blocked waiting for message",
 			//	tcb->pcb->stats.info.name, tcb->handle);
 			// Remove from the ready queue
-			tcb_enqueue(krn.interruptedTcb, NULL);
+			tcb_enqueue(tcb, NULL);
 			// and set it to blocked
 			tcb->state = TCB_STATE_BLOCKED;
 			tcb->wait.type = TCB_WAIT_TYPE_WAITING_FOR_MSG;		
@@ -217,7 +217,7 @@ bool syscall_getMessage(void)
 
 bool syscall_postMessage(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	int* regs = (int*)&krn.currTcb->ctx;
 	HANDLE threadHandle = (HANDLE)regs[0];
 	uint32_t msgId = regs[1];
 	uint32_t param1 = regs[2];
@@ -225,7 +225,7 @@ bool syscall_postMessage(void)
 	
 	// NOTE: A process can only post messages to threads it owns, otherwise it
 	// could crash some other process by exploiting how it handles those messages.
-	TCB* tcb = handles_getData(threadHandle, krn.interruptedTcb->pcb->info.pid,
+	TCB* tcb = handles_getData(threadHandle, krn.currTcb->pcb->info.pid,
 		kHandleType_Thread);
 	if (tcb) {
 		regs[0] = prc_postThreadMessage(tcb, msgId, param1, param2);
@@ -238,23 +238,23 @@ bool syscall_postMessage(void)
 
 bool syscall_setTimer(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	int* regs = (int*)&krn.currTcb->ctx;
 	uint32_t timerId = regs[0];
 	uint32_t ms = regs[1];
 	bool repeat = (bool)regs[2];
-	regs[0] = prc_setThreadTimer(krn.interruptedTcb, timerId, ms, repeat);
+	regs[0] = prc_setThreadTimer(krn.currTcb, timerId, ms, repeat);
 	return TRUE;
 }
 
 bool syscall_setFocusTo(void)
 {
 	//PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	uint8_t pid = regs[0];
 	PCB* pcb=NULL;
 	if (pid==0) {
-		pcb = krn.interruptedTcb->pcb;
+		pcb = krn.currTcb->pcb;
 	} else {
 		pcb = prc_findByPID(pid);
 	}
@@ -273,15 +273,15 @@ bool syscall_setFocusTo(void)
 ////////////////////////////////////////////////////////////////////////////////
 bool syscall_getProcessCount(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	int* regs = (int*)&krn.currTcb->ctx;
 	regs[0] = linkedlist_size((LinkedListNode*)krn.kernelPcb);
 	return TRUE;
 }
 
 bool syscall_getProcessInfo(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	ProcessInfo* dst = (ProcessInfo*)regs[0];
 	bool updateStats = (bool)regs[1];
 
@@ -301,8 +301,8 @@ bool syscall_getProcessInfo(void)
 
 bool syscall_getOSInfo(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	OSInfo* dst_osinfo = (OSInfo*)regs[0];
 	ProcessInfo* dst_prc = (ProcessInfo*)regs[1];
 	int dst_size = regs[2];
@@ -365,19 +365,19 @@ bool syscall_getOSInfo(void)
 // TODO : Remove this. Applications will have their own screen buffer
 bool syscall_getScreenBuffer(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	int* regs = (int*)&krn.currTcb->ctx;
 	regs[0] = (int)hw_scr_getScreenBuffer();
 	return TRUE;
 }
 bool syscall_getScreenXRes(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	int* regs = (int*)&krn.currTcb->ctx;
 	regs[0] = (int)hw_scr_getScreenXRes();
 	return TRUE;
 }
 bool syscall_getScreenYRes(void)
 {
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	int* regs = (int*)&krn.currTcb->ctx;
 	regs[0] = (int)hw_scr_getScreenYRes();
 	return TRUE;
 }
@@ -388,8 +388,8 @@ bool syscall_getScreenYRes(void)
 
 bool syscall_diskDriveRead(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	u32 diskNum = (u32)regs[0];
 	u32 sectorNum = (u32)regs[1];
@@ -408,8 +408,8 @@ bool syscall_diskDriveRead(void)
 
 bool syscall_diskDriveWrite(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	u32 diskNum = (u32)regs[0];
 	u32 sectorNum = (u32)regs[1];
@@ -428,8 +428,8 @@ bool syscall_diskDriveWrite(void)
 
 bool syscall_diskDriveSetFlags(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	u32 diskNum = (u32)regs[0];
 	u32 flags = (u32)regs[1];
@@ -441,8 +441,8 @@ bool syscall_diskDriveSetFlags(void)
 
 bool syscall_diskDriveGetFlags(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	u32 diskNum = (u32)regs[0];
 
@@ -453,8 +453,8 @@ bool syscall_diskDriveGetFlags(void)
 
 bool syscall_diskDriveGetInfo(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	u32 diskNum = (u32)regs[0];
 	DISK_INFO * disk_info = (DISK_INFO *)regs[1];
@@ -476,8 +476,8 @@ bool syscall_diskDriveGetInfo(void)
 
 bool syscall_setCanvas(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	void* canvas = (void*)regs[0];
 	u32 size = regs[1];
@@ -500,8 +500,8 @@ bool syscall_setCanvas(void)
 
 bool syscall_setStatusBar(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	const char* str = (const char*)regs[0];
 	size_t size = regs[1];
@@ -524,8 +524,8 @@ bool syscall_setStatusBar(void)
 
 bool syscall_processScreenshot(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	uint8_t  pid = regs[0];
 	void* dst = (const char*)regs[1];
@@ -563,8 +563,8 @@ bool syscall_processScreenshot(void)
 
 bool syscall_outputDebugString(void)
 {
-	PCB* pcb = krn.interruptedTcb->pcb;
-	int* regs = (int*)krn.interruptedTcb->cpuctx;
+	PCB* pcb = krn.currTcb->pcb;
+	int* regs = (int*)&krn.currTcb->ctx;
 	
 	// Grab user string to print, and force zero termination, to avoid possible
 	// exploits
