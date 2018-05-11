@@ -145,7 +145,7 @@ static bool prc_setupMemory(
 	// thread context is in protected memory
 	TCB* tcb = pcb->mainthread;
 	tcb->ctx.gregs[CPU_REG_DS] = (uint32_t)pcb->ds;	
-	// Set our own DS register, if we are initializign the Kernel's PCB
+	// Set our own DS register, if we are initializing the Kernel's PCB
 	if (isKrn)
 	{
 		prc_setKrnDS(pcb->ds);
@@ -168,6 +168,7 @@ static bool prc_setupMemory(
 	{
 		assert(extraSize>=MMU_TABLE_SIZE);
 		mmu_init(firstPage, numPages, memStart+stackSize);
+		hw_cpu_ctxswitch(&tcb->ctx, &tcb->ctx);
 	}
 	
 	//
@@ -215,9 +216,17 @@ PCB* prc_initKernelPrc(void)
 	rootthread.state = TCB_STATE_KERNEL;
 	// Point to self, to close the circle
 	linkedlist_addAfter(&rootthread, &rootthread);
+	
+	uint32_t flags = hw_cpu_getFlagsRegister();
+	flags = (flags & 0xFF000000) |
+		MMU_KEY(rootpcb.info.pid, rootpcb.info.pid, rootpcb.info.pid);
+	hw_cpu_setFlagsRegister(flags);
+	
+	#if 0
 	rootthread.ctx.flags =
 		(rootthread.ctx.flags & 0xFF000000) |
-		MMU_KEY(rootpcb.info.pid, rootpcb.info.pid,rootpcb.info.pid);
+		MMU_KEY(rootpcb.info.pid, rootpcb.info.pid, rootpcb.info.pid);
+	#endif
 	
 	// TODO : Fix this. The kernel shouldn't have automatic access to the 
 	// entire memory.

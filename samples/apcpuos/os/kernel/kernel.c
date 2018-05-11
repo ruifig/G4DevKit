@@ -112,7 +112,6 @@ CpuCtx* krn_init()
 	queue32_create(&krn.tcbReady, 32);
 	krn_initTimedEvents();
 
-
 	hw_initAll();
 	// Small pause so we can look at the devices
 	krn_spin(2000);

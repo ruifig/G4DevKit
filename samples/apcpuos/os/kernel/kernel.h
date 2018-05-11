@@ -60,6 +60,8 @@ void krn_pickNextTcb(void);
 //! Spins for the specified milliseconds
 void krn_spin(unsigned int ms);
 
+//! Gets the kernel CPU context
+CpuCtx* krn_getIntrCtx(void);
 
 #endif
 

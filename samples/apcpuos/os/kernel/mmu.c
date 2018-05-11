@@ -215,6 +215,8 @@ void mmu_setPagesInMemRange(
 
 void mmu_init(size_t krnFirstPage, size_t krnNumPages, void* mmutableaddr)
 {
+	KERNEL_DEBUG("%s (krnFirstPage=%u, krnNumPages=%u, mmutableaddr=%x",
+		__func__, krnFirstPage, krnNumPages, mmutableaddr);
 	mmu.numPages = SIZE_TO_PAGES(ramAmount);
 	mmu.table = (uint32_t*)mmutableaddr;
 	
