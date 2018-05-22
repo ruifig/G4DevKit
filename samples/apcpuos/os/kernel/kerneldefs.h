@@ -57,10 +57,10 @@
 
 
 // If 1, causes the kernel initialization to fail, to test failure detection
-#define TEST_KERNEL_INIT_FAIL 1
+#define TEST_KERNEL_INIT_FAIL 0
 
 // If 1, causes task initialization to fail, to test task failure detection
-#define TEST_TASKBOOT_FAIL 1
+#define TEST_TASKBOOT_FAIL 0
 
 
 #endif
