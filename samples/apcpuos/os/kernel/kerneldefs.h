@@ -16,8 +16,6 @@
 
 #define CPU_FLAGSREG_SUPERVISOR 26
 
-#define INTRCTX_ADDR 0x8
-
 // Stack space for the kernel process/thread.
 // Needs to be 4 word aligned
 #define KERNEL_STACKSIZE (1024*10)
@@ -57,7 +55,7 @@
 
 
 // If 1, causes the kernel initialization to fail, to test failure detection
-#define TEST_KERNEL_INIT_FAIL 0
+#define TEST_KERNEL_INIT_FAIL 1
 
 // If 1, causes task initialization to fail, to test task failure detection
 #define TEST_TASKBOOT_FAIL 0

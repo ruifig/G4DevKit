@@ -18,3 +18,14 @@ changes I need to make, I need to change both functions
 
 
 - Change all occurences of "hwi" in code or comments to hwf
+
+
+Debugging MMU
+---------------------------- 
+
+krn_preboot
+	prc_initKernelPrc()
+		prc_setupMemory(...)
+			mmu_init() // CRASH
+	return krn.kernelPcb->mainthread->stackStop
+	

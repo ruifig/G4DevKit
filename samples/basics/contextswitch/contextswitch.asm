@@ -11,16 +11,14 @@
 ;		- Setup the contexts
 ;		- Loop, switching execution between the contexts
 ;
-; There are 2 contexts, whose state is saved in _ctx1 and _ctx2.
-; Also, a small stack is provided for each contexts (_ctx1Stack and _ctx2Stack)
-;
-;
+; There are 2 contexts. The currently executing context, and another one saved
+; in _ctx.
+; _ctx keeps the sate of the currently suspended context.
+; 
 ; Register use as follow:
 ;	r4 - Screen column where to display the character
 ;	r5 - Screen row where to display the character
 ;	r6 - Character to show
-;	r7 - Context to switch to
-;	r8 - Where to save the current context
 ;
 ;*******************************************************************************
 
@@ -49,51 +47,36 @@ _startup:
 	lea r2, [_sampleName]
 	bl _scr_printStringAtXY
 	
-	;
-	; Setup the contexts
-	; NOTE: _ctx1 is not being setup explicitly because it will be where the
-	; initial context is saved to.
-	;
-	; Set the screen columns the contexts will write to (kept in register r4)
-	mov r4, 0
-	str [_ctx2 + 4*4], 0
-	; Set screen rows the contexts will write to (kept in the r5 register)
-	mov r5, 1
-	str [_ctx2+ 5*4], 2
-	; Set character to show (kept in register r6)
-	mov r6, 49
-	str [_ctx2+ 6*4], 50
+	; Prepare for the second context initialization
+	; The second context is initialized when the first context switches
+	; execution
+	str [_ctx + 0*4], 1 ; context number
+	lea r0, [_runCtx]
+	str [_ctx + 15*4], r0 ; entry point
+	; set the second's context flags register to be in Supervisor mode,
+	; otherwise it can't call hwf
+	mrs r0 ; Get current flags register
+	str [_ctx + 16*4], r0; Set the flags register
 	
-	; Set the addresses to save and load the contexts from
-	; In r7, we keep the address of the context to load.
-	; In r8, we keep the address to save the current context to
+	; Run the first context
+	mov r0, 0
+	b _runCtx
 	
-	lea r7, [_ctx2] ; current context (_ctx1), switches to _ctx2
-	lea r8, [_ctx1] ; current context state is saved in _ctx1
-	str [_ctx2+ 7*4], r8 ; _ctx2 switches to _ctx1
-	str [_ctx2+ 8*4], r7 ; _ctx2 save address
+; On entry, r0 has the context number
+_runCtx:
+	; Set a stack for this context
+	; sp = &_stackTop - (ctxNumber * 1024)
+	lea sp, [_stackTop]
+	smul r1, r0, 1024
+	sub sp, sp, r1
 	
-	; Setup a small stack for each context, so we can call C functions
-	lea r0, [_ctx1Stack+1024]
-	mov sp, r0 ; Stack for current context
-	lea r0, [_ctx2Stack+1024]
-	str [_ctx2+ 13*4], r0 ; Stack for _ctx2
-
-	; Setup PC for _ctx2
-	lea r0, [_contextLoop]
-	str [_ctx2+ 15*4], r0
+	mov r4, 0 ; set the screen column
+	; set the screen row
+	add r5, r0, 2
+	; Set the character to show
+	add r6, r0, 49
 	
-	; Set the contexts flags registers, to make sure we have interrupts
-	; disabled and we are in supervisor mode
-	; In this case, we are just copying the current flags to _ctx2
-	mrs r0 ; Get our flags register
-	str [_ctx2+ 16*4], r0
-
-	; Now.... we let the main context run the intended code once
-	; and then at the end it switches contexts
-	
-_contextLoop:
-
+_runCtxLoop:
 	; Clear the previous screen character
 	mov r0, r4 ; x
 	mov r1, r5 ; y
@@ -116,26 +99,21 @@ _contextLoop:
 	bl _pause
 	
 	; Change execution to the other context
-	; Change to context at [r7], and save current in [r8]
-	ctxswitch [r7], [r8]
-	
+	lea r0, [_ctx]
+	ctxswitch [r0], [r0]
 	; loop to beginning when this context gets resumed
-	b _contextLoop 
-
+	b _runCtxLoop
+	
 ;*******************************************************************************
 ;								Data
 ;*******************************************************************************
 .data
-	_ctx1:
+	_ctx:
 	.zero 208
-	_ctx2:
-	.zero 208
-
-	; These are used as small stacks for the test contexts
-	_ctx1Stack:
-	.zero 1024
-	_ctx2Stack:
-	.zero 1024
+	
+	; Stacks for both contexts
+	.zero 2048
+	_stackTop:
 	
 	_sampleName:
 	.string "Context Switching Sample: Shows two contexts sharing execution"

@@ -8,6 +8,7 @@ extern _krn_preboot
 extern _krn_getIntrCtx
 extern _krn_init
 extern _krn_handleInterrupt
+extern _prc_getKrnStackTop
 
 ;
 ; declare variables from C files
@@ -24,6 +25,12 @@ extern _krn_prevIntrBusAndReason
 _boot:
 	str [_krn_currIntrBusAndReason], 0
 	str [_krn_prevIntrBusAndReason], 0
+	
+	; First we get the stack location for the kernel, so we can initialize
+	; everything including the MMU, while keep thinks protected from as soon
+	; as possible
+	bl _prc_getKrnStackTop
+	mov sp, r0 ;
 	
 	; Boot first pass to initialize basics
 	; This is required, so we setup a stack where we want, exit the preboot
@@ -43,15 +50,15 @@ _boot:
 	str [_krn_currIntrBusAndReason], -1
 	ctxswitch [r0], [r4] ; switch to ctx at [r0]
 	
-	_boot1:
+	_kernelLoop:
 		ldr r5, [_krn_currIntrBusAndReason]
 		str [_krn_prevIntrBusAndReason], r5
 		str [_krn_currIntrBusAndReason], ip
 		bl _krn_handleInterrupt ; Returns the context to switch to
 		str [_krn_currIntrBusAndReason], -1
 		ctxswitch [r0], [r4] ; switch to ctx at [r0]
-		b _boot1
-	
+		b _kernelLoop
+		
 ;*******************************************************************************
 ;*******************************************************************************
 ;*******************************************************************************

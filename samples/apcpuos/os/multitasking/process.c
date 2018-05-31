@@ -92,6 +92,21 @@ INLINEASM("\t\
 mov r11, r0\n\t\
 ");
 
+static int prc_getKrnFirstPage(void)
+{
+	int sharedSize = align(processInfo.sharedReadWriteSize, 4);	
+	return ADDR_TO_PAGE(align(
+		processInfo.sharedReadWriteAddr+sharedSize,MMU_PAGE_SIZE));
+}
+
+uint8_t* prc_getKrnStackTop()
+{
+	int firstPage = prc_getKrnFirstPage();
+	uint8_t* memStart = PAGE_TO_ADDR(firstPage);
+	int stackSize = align( max(KERNEL_STACKSIZE,PRC_MIN_STACKSIZE) ,4);
+	return memStart + stackSize;
+}
+
 static bool prc_setupMemory(
 	PCB* pcb,
 	size_t stackSize, size_t heapSize, size_t extraSize,
@@ -119,8 +134,7 @@ static bool prc_setupMemory(
 	//
 	int firstPage;
 	if (isKrn) {
-		firstPage = ADDR_TO_PAGE( align(
-			processInfo.sharedReadWriteAddr+sharedSize,MMU_PAGE_SIZE));
+		firstPage = prc_getKrnFirstPage();
 	} else {
 		firstPage = mmu_findFreePages( numPages );
 		if (firstPage==-1) {
