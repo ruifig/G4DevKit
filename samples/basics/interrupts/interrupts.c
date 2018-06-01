@@ -6,10 +6,7 @@
 #include "hwcpu.h"
 #include "hwclock.h"
 
-// This will be used as the application execution context
-Ctx appCtx;
-// When an interrupt happens, it switches to this context
-Ctx intrCtx;
+extern Ctx interruptedCtx;
 
 // The assembly interrupt handler sets this whenever an IRQ interrupt happens
 u32 intrBus;
@@ -40,17 +37,16 @@ void setupAppCtx(void)
 	#define APPSTACKSIZE 4096
 	static char appStack[APPSTACKSIZE];
 
-	memset(&appCtx, 0, sizeof(appCtx));
 	// Setup the stack (register SP)
 	// Note that the stack grows downwards, so we point SP to the top address of
 	// the memory block we are using for the stack	
-	appCtx.gregs[CPU_REG_SP] = (int) &appStack[APPSTACKSIZE];
+	interruptedCtx.gregs[CPU_REG_SP] = (int) &appStack[APPSTACKSIZE];
 	// Setup the PC register
-	appCtx.gregs[CPU_REG_PC] = (int) &launchApplication;
+	interruptedCtx.gregs[CPU_REG_PC] = (int) &launchApplication;
 	// Setup the flags register
 	// The value specified (0x04000000), sets Supervisor mode, and enables
 	// IRQs	
-	appCtx.flags[0] = 0x04000000;	
+	interruptedCtx.flags[0] = 0x04000000;	
 }
 
 void printInterruptDetails(
@@ -58,7 +54,7 @@ void printInterruptDetails(
 	u32 data0, u32 data1, u32 data2, u32 data3)
 {
 	redrawScreen(TRUE);
-	Ctx* ctx = &appCtx;
+	Ctx* ctx = &interruptedCtx;
 	
 	int x = 4;
 	int y = 1;
@@ -88,12 +84,10 @@ void printInterruptDetails(
 // How many drivers we support in the sample
 #define NUM_DRIVERS 2
 
-Ctx* handleReset(void)
+void handleReset(void)
 {
-	cpu_setInterruptContexts(&appCtx, &intrCtx);
 	scr_init();
 	setupAppCtx();
-	return &appCtx;
 }
 
 void cpu_handleGeneric(u32 data0, u32 data1, u32 data2, u32 data3)
@@ -115,7 +109,7 @@ void cpu_handleGeneric(u32 data0, u32 data1, u32 data2, u32 data3)
 		setupAppCtx();
 	} else {
 		// If it's a system call, pass a return value back to the application
-		appCtx.gregs[0] = ++lastSystemCallResult;	
+		interruptedCtx.gregs[0] = ++lastSystemCallResult;	
 	}
 }
 
@@ -147,12 +141,11 @@ Driver drivers[NUM_DRIVERS] =
 	{ clock_handlers, HWCLOCK_INTERRUPT_MAX }
 };
 
-Ctx* handleInterrupt(u32 data0, u32 data1, u32 data2, u32 data3)
+void handleInterrupt(u32 data0, u32 data1, u32 data2, u32 data3)
 {
 	intrCount++;	
 	// We just forward the handling to the specific driver
 	drivers[intrBus].handlers[intrReason](data0, data1, data2, data3);
-	return &appCtx;
 }
 
 void showMenu(void)

@@ -72,7 +72,7 @@ static void hw_cpu_irqHandler(uint32_t reason, u32 data0, u32 data1)
 		
 		case 4: // SWI (System Call)
 		{
-			int* regs = (int*)&krn.currTcb->ctx;
+			int* regs = (int*)krn.currTcb->ctx;
 			uint32_t id = regs[SYSCALL_ID_REGISTER];
 			bool ok;
 			if (id<kSysCall_Max) {

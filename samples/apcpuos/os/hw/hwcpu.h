@@ -10,8 +10,6 @@
 #define HW_CPU_FUNC_GETRAMAMOUNT 0
 #define HW_CPU_FUNC_GETIRQQUEUESIZE 1
 #define HW_CPU_FUNC_SETMMUTABLE 2
-#define HW_CPU_FUNC_SETINTRSAVEADDR 3
-#define HW_CPU_FUNC_SETINTRLOADADDR 4
 
 typedef struct CpuCtx
 {
@@ -124,17 +122,5 @@ const char* hw_cpu_getIntrReasonMsg(uint32_t reason);
  */
 #define hw_cpu_setMMUTable(mmuTablePtr) \
 	hw_hwiSimple1(HWBUS_CPU, HW_CPU_FUNC_SETMMUTABLE, mmuTablePtr)
-
-/*
- * Sets the address of the context to load when an interrupt happens
- */
-#define hw_cpu_setIntrLoadAddr(addr) \
-	hw_hwiSimple1(HWBUS_CPU, HW_CPU_FUNC_SETINTRLOADADDR, addr)
-	
-/*
- * Sets where to save the interrupted context when an interrupt happens
- */
-#define hw_cpu_setIntrSaveAddr(addr) \
-	hw_hwiSimple1(HWBUS_CPU, HW_CPU_FUNC_SETINTRSAVEADDR, addr)
 
 #endif

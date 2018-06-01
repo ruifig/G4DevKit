@@ -1,8 +1,12 @@
 ;*******************************************************************************
 ; Bare minimum to print a null terminted string to the screen
 ;*******************************************************************************
-
 .text
+
+.word _startup
+.word _startup
+.zero 208
+
 public _startup
 _startup:
 

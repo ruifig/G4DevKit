@@ -22,12 +22,21 @@ extern _krn_prevIntrBusAndReason
 ;*******************************************************************************
 ;
 .text
+.word _boot
+.word _intrHandler
+
+public _intrCtx
+_intrCtx:
+.zero 208
+.zero 808
+
+public _boot
 _boot:
 	str [_krn_currIntrBusAndReason], 0
 	str [_krn_prevIntrBusAndReason], 0
 	
 	; First we get the stack location for the kernel, so we can initialize
-	; everything including the MMU, while keep thinks protected from as soon
+	; everything including the MMU, while keep things protected from as soon
 	; as possible
 	bl _prc_getKrnStackTop
 	mov sp, r0 ;
@@ -39,8 +48,8 @@ _boot:
 	bl _krn_preboot
 	mov sp, r0 ; _kernel_preboot returns the stacktop to use, so set the stack
 		
-	bl _krn_getIntrCtx;
-	mov r4, r0; We keep intrCtx around in r4
+	;bl _krn_getIntrCtx;
+	;mov r4, r0; We keep intrCtx around in r4
 	
 	;
 	; Fully initialize the rest of the system.
@@ -48,16 +57,21 @@ _boot:
 	;
 	bl _krn_init
 	str [_krn_currIntrBusAndReason], -1
-	ctxswitch [r0], [r4] ; switch to ctx at [r0]
+	lea r1, [_intrCtx]
+	ctxswitch [r0], [r1] ; switch to ctx at [r0]
+	dbgbrk ; We should never get here
 	
-	_kernelLoop:
-		ldr r5, [_krn_currIntrBusAndReason]
-		str [_krn_prevIntrBusAndReason], r5
-		str [_krn_currIntrBusAndReason], ip
-		bl _krn_handleInterrupt ; Returns the context to switch to
-		str [_krn_currIntrBusAndReason], -1
-		ctxswitch [r0], [r4] ; switch to ctx at [r0]
-		b _kernelLoop
+		
+_intrHandler:
+	ldr r5, [_krn_currIntrBusAndReason]
+	str [_krn_prevIntrBusAndReason], r5
+	str [_krn_currIntrBusAndReason], ip
+	bl _krn_handleInterrupt ; Returns the context to switch to
+	str [_krn_currIntrBusAndReason], -1
+	lea r1, [_intrCtx]
+	ctxswitch [r0], [r1]
+	dbgbrk ; We should never get here
+
 		
 ;*******************************************************************************
 ;*******************************************************************************

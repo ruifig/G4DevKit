@@ -102,7 +102,7 @@ void krn_PanicImpl(const char* file, int line, const char* fmt, ...)
 
 void krn_forceCrash(void)
 {
-	unsigned char* ptr = (unsigned char*)0x4;
+	unsigned char* ptr = (unsigned char*)((uint32_t)0xFFFFFFFF);
 	*ptr = 0;
 }
 

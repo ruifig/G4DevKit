@@ -47,14 +47,21 @@ void krn_spin(unsigned int ms)
  */
 void* krn_preboot(void)
 {
+	// Check if we left a full page before the code
+	extern uint32_t boot;
+	assert((uint32_t)&boot==1024);
+	
 	ramAmount = hw_cpu_getRamAmount();
 	krn.kernelPcb = prc_initKernelPrc();
+	
+	// Set the stack to use if a kernel crash happens before we finish
+	// initializing the kernel
+	// This is necessary, since the CPU will load the context at intrCtx
+	// to handle interrupts, so intrCtx[CPU_REG_SP] needs to point to a valid
+	// stack
+	intrCtx.gregs[CPU_REG_SP] = (uint32_t)krn.kernelPcb->mainthread->stackTop;
+	
 	return krn.kernelPcb->mainthread->stackTop;
-}
-
-CpuCtx* krn_getIntrCtx(void)
-{
-	return &krn.kernelPcb->mainthread->ctx;
 }
 
 //
@@ -114,7 +121,7 @@ CpuCtx* krn_init()
 
 	hw_initAll();
 	// Small pause so we can look at the devices
-	krn_spin(2000);
+	krn_spin(2000 * KERNEL_BOOT_PAUSE);
 
 	{
 		uint32_t timer=0;
@@ -160,7 +167,7 @@ CpuCtx* krn_init()
 	krn_bootLog("Done\n");	
 	krn_bootLog("Starting OS...\n");
 	
-	krn_spin(1000);
+	krn_spin(1000 * KERNEL_BOOT_PAUSE);
 	
 	// Clear screen
 	txtui_setBackgroundColour(&rootCanvas, kTXTCLR_BLACK);
@@ -173,11 +180,7 @@ CpuCtx* krn_init()
 
 	krn.currTcb = krn.idlethread;
 	
-	// Setup interrupt handing
-	hw_cpu_setIntrLoadAddr((uint32_t)&krn.kernelPcb->mainthread->ctx);
-	hw_cpu_setIntrSaveAddr((uint32_t)&krn.currTcb->ctx);
-	
-	return &krn.currTcb->ctx;
+	return krn.currTcb->ctx;
 }
 
 void krn_pickNextTcb(void)
@@ -239,6 +242,9 @@ CpuCtx* krn_handleInterrupt(
 
 	krn_leaveTcb(krn.currTcb, false);	
 	
+	// Save the interrupted context back to the right TCB
+	memcpy(krn.currTcb->ctx, &intrCtx, sizeof(CpuCtx)); 
+	
 	krn_countSwiTime = false;
 
 	uint32_t busAndReason = krn_currIntrBusAndReason;
@@ -268,6 +274,5 @@ CpuCtx* krn_handleInterrupt(
 	
 	krn_leaveTcb(krn.kernelPcb->mainthread, krn_countSwiTime);
 		
-	hw_cpu_setIntrSaveAddr((uint32_t)&krn.currTcb->ctx);
-	return &krn.currTcb->ctx;
+	return krn.currTcb->ctx;
 }

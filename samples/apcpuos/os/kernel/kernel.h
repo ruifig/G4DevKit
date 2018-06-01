@@ -52,6 +52,7 @@ typedef struct Kernel {
 
 extern Kernel krn;
 extern bool krn_countSwiTime;
+extern CpuCtx intrCtx;
 
 /*! Sets the thread to run next 
 */

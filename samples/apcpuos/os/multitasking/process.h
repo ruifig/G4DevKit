@@ -101,7 +101,7 @@ typedef struct TCB
 	struct TCB* next;
 	struct TCB* previous;
 	
-	struct CpuCtx ctx;
+	struct CpuCtx* ctx;
 	struct PCB* pcb; // Process this thread belongs to
 	
 	// Handle to be used by the application to refer to this thread

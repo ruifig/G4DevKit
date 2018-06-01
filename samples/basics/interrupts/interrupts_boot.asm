@@ -17,18 +17,24 @@ extern _cpu_setInterruptContexts;
 extern _intrCtx
 extern _intrBus
 extern _intrReason
+public _interruptedCtx;
 
 ;
 ; Execution starts here when booting
 ; We pass execution to a C function, since it's easier to work with C
 .text
+.word _boot
+.word _interruptHandler
+_interruptedCtx:
+.zero 208
+
 _boot:
-	bl _handleReset ; _handleReset returns the context to load
-	
-	; switch to contex at [r0], and save current at [_intrCtx]
-	; When an interrupt happens, execution will resume right after the ctxswitch
-	lea r4, [_intrCtx]
-	ctxswitch [r0], [r4]
+	bl _handleReset
+	; Start the application by resuming the context that was setup in
+	; _interruptedCtx
+	lea r4, [_interruptedCtx]
+	ctxswitch [r4], [r4]
+	dbgbrk ; We should never get here
 	
 	_boot1:
 	; Save the bus and reason that caused the interrupt
@@ -42,7 +48,22 @@ _boot:
 	bl _handleInterrupt
 	ctxswitch [r0], [r4]
 	b _boot1
-
+	
+_interruptHandler:
+	; Save the bus and reason that caused the interrupt
+	; NOTE: r0..r3 should not be changed, since they are parameters for the C
+	; interrupt handler function
+	srl r5, ip, 24
+	str [_intrBus], r5;
+	and r5, ip, 0x80FFFFFF
+	str [_intrReason], r5;
+	
+	bl _handleInterrupt
+	
+	; Resume application context
+	lea r4, [_interruptedCtx]
+	ctxswitch [r4], [r4]
+	dbgbrk ; We should never get here
 
 ;*******************************************************************************
 ; Utility functions called from the C file, to cause some interrupts for testing

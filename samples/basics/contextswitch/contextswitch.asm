@@ -23,6 +23,9 @@
 ;*******************************************************************************
 
 .text
+.word _startup
+.word _startup
+.zero 208
 
 ;
 ; Things we need from the common static library

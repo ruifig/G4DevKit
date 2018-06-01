@@ -117,7 +117,7 @@ bool mmu_check_user(struct PCB *pcb, MMUMemAccess access, void* addr, size_t siz
 	if (page1>=mmu.numPages || page2>=mmu.numPages)
 		return FALSE;
 
-	uint32_t processKeys = pcb->mainthread->ctx.flags & 0x00FFFFFF;
+	uint32_t processKeys = pcb->mainthread->ctx->flags & 0x00FFFFFF;
 	uint32_t prckeymask = processKeys & access;
 	uint32_t p1mask = access & mmu.table[page1];
 	uint32_t p2mask = access & mmu.table[page2];
@@ -247,6 +247,9 @@ void mmu_init(size_t krnFirstPage, size_t krnNumPages, void* mmutableaddr)
 		
 	/* set kernel heap pages */
 	mmu_setPages( krnFirstPage, krnNumPages, PID_KERNEL, true, true, false);
+	
+	/* Set first page as read/write, so we can access the interrupted context */
+	mmu_setPages( 0, 1, PID_KERNEL, true, true, false );
 
 	/* Reserve the last few pages for the screen buffer */
 	uint32_t screenBufferSize = hw_scr_getBufferSize();	
