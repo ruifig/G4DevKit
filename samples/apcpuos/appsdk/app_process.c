@@ -62,7 +62,6 @@ void app_startup(PrcEntryFunc func)
 	// Setup TLS for this thread
 	AppTLS tlsData;
 	app_setupTLS(&tlsData);
-
 	stdcshared_init(app_outputDebugString, app_info->prcInfo.heap_start,
 	app_info->prcInfo.heap_size);
 	

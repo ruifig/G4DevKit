@@ -7,9 +7,10 @@ void cpu_halt(void);
 void cpu_dbgbrk(void);
 u32 cpu_getRamAmount(void);
 int cpu_getIRQQueueSize(void);
+void cpu_setKey(u32 key);
 void cpu_enableIRQ(void);
 void cpu_disableIRQ(void);
-void cpu_setMMUTableAddress(void* tbl, int size);
+void cpu_setMMUTableAddress(void* tbl, u32 numpages);
 void cpu_setInterruptContexts(Ctx* save, Ctx* load);
 
 /*
@@ -48,9 +49,9 @@ bool cpu_getNextIRQ(IRQData* dst, u8 busFilter);
 #define PAGES_TO_SIZE(pages) \
 	((pages)*MMU_PAGE_SIZE)
 
-
 #define CPU_REG_DS 11
 #define CPU_REG_SP 13
+#define CPU_REG_LR 14
 #define CPU_REG_PC 15
 
 #define CPU_FLAGSREG_SUPERVISOR (1<<26)

@@ -14,8 +14,9 @@
 		".\\nicpeer\\nicpeer.apcpuprj",
 		".\\scratchpad\\scratchpad.apcpuprj",
 		".\\benchmark\\benchmark.apcpuprj",
-		".\\contextswitch_c\\contextswitch_c.apcpuprj"
+		".\\contextswitch_c\\contextswitch_c.apcpuprj",
+		".\\mmu\\mmu.apcpuprj"
 	],
-	"startup_project": "benchmark",
+	"startup_project": "mmu",
 	"active_configuration": "Debug"
 }

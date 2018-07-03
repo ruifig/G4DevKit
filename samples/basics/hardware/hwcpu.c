@@ -23,13 +23,11 @@ int cpu_getIRQQueueSize(void)
 	return data.regs[0];
 }
 
-void cpu_setMMUTableAddress(void* tbl, int size)
+void cpu_setMMUTableAddress(void* tbl, u32 numpages)
 {
 	HwiData data;
 	data.regs[0] = (u32)tbl;
-	u32 ram = cpu_getRamAmount();
-	u32 numPages = ram / MMU_PAGE_SIZE;
-	always_assert(numPages==(size/4));
+	data.regs[1] = numpages;
 	int res = hwiCall(HWBUS_CPU, HWCPUFUNC_SET_MMU_TABLE, &data);
 	always_assert(res==HWIERR_SUCCESS);
 }

@@ -4,12 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern Ctx interruptedCtx;
-void* interruptHandler(u32 p0, u32 p1, u32 p2, u32 p3, u32 reason)
-{
-	return &interruptedCtx;
-}
-
 Coroutine co1, co2;
 char stack1[1024], stack2[1024];
 

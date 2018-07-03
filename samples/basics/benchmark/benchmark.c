@@ -7,13 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-//
-// We can have up to 128 devices, but because proper support for that in this
-// sample would require some kind of screen scrolling, we are keeping things
-// simple by only trying to find a limited number of devices
-#define MAX_DEVICES 20
-
 int line=1;
+u32* mmuTable;
+u32 mmuTableEntries;
 
 void doWork()
 {
@@ -24,8 +20,35 @@ void doWork()
 		}
 }
 
+// Calculate the MMU table size in bytes
+// Called from the assembly boot code
+u32 calcMMUTableSize(void)
+{
+	u32 ramAmount = cpu_getRamAmount();
+	mmuTableEntries = ramAmount / MMU_PAGE_SIZE;
+	return mmuTableEntries * sizeof(u32);
+}
+
+#define MMU_ACCESS_R (1 << 9)
+#define MMU_ACCESS_W (1 << 8)
+#define MMU_ACCESS_X (1 << 7)
+#define MMU_ACCESS_ALL (MMU_ACCESS_R | MMU_ACCESS_W | MMU_ACCESS_X)
+
+void initMMUTable(void)
+{
+	u32 key = 1;
+	cpu_setKey(key);
+	for (u32 i = 0; i < mmuTableEntries; i++)
+	{
+		mmuTable[i] = (i * MMU_PAGE_SIZE) | MMU_ACCESS_ALL | key;
+	}
+}
+
 void appMain(void)
 {
+	initMMUTable();
+	cpu_setMMUTableAddress(mmuTable, mmuTableEntries);
+
 	int x,y;
 	scr_init();
 	

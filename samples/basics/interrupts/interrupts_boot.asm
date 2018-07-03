@@ -14,7 +14,6 @@ extern _handleInterrupt
 extern _cpu_setInterruptContexts;
 
 ; Variables in the C file
-extern _intrCtx
 extern _intrBus
 extern _intrReason
 public _interruptedCtx;

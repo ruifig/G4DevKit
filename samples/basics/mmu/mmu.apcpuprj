@@ -1,7 +1,7 @@
 {
 	"format": "Project",
 	"version": 1,
-	"name": "scratchpad",
+	"name": "mmu",
 	"type": 1,
 	"globalconfiguration": {
 		"name": "Global",
@@ -18,12 +18,14 @@
 		{
 			"name": "Debug",
 			"includePaths": [
-
+				"$(SolutionDir)\/common",
+				"$(SolutionDir)\/cstdlib",
+				"$(SolutionDir)\/hardware"
 			],
 			"defines": [
 				"DEBUG"
 			],
-			"compilerOptions": "-v -c99 -O2 -g -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153 -ic1 -ic2 -icdebug=\"C:\\Work\\crazygaze\\G4All\\G4Devkit\\samples\basics\tmp\\Debug\\scratchpad\\scratchtest.c.icdebug.txt\"",
+			"compilerOptions": "-c99 -O2 -g -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153",
 			"linkerextralibs": ""
 		},
 		{
@@ -39,15 +41,25 @@
 		}
 	],
 	"dependencies": [
-
+		"common",
+		"hardware",
+		"cstdlib"
 	],
 	"files": [
 		{
-			"path": ".\\scratchpad.asm",
+			"path": ".\\mmu.c",
+			"bootfile": false
+		},
+		{
+			"path": ".\\mmu_boot.asm",
 			"bootfile": true
 		},
 		{
-			"path": ".\\scratchtest.c",
+			"path": ".\\mmu_test_utils.c",
+			"bootfile": false
+		},
+		{
+			"path": ".\\mmu_test_utils.h",
 			"bootfile": false
 		}
 	]
