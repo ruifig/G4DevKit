@@ -47,7 +47,7 @@ typedef struct HeapInfo
 */
 void prc_setPagesAccess(PCB* pcb, uint8_t pid)
 {
-	mmu_setPages(pcb->firstPage, pcb->numPages, pid, true, true, false);
+	mmu_setPages(pcb->firstPage, pcb->numPages, pid, MMU_R|MMU_W);
 	
 	// Search for threads that belong to this process, and set any pages that
 	// were allocated for that thread
@@ -63,7 +63,7 @@ void prc_setPagesAccess(PCB* pcb, uint8_t pid)
 			mmu_setPages(
 				ADDR_TO_PAGE(it->stackBottom),
 				SIZE_TO_PAGES(it->stackTop - it->stackBottom),
-				pid, true, true, false);
+				pid, MMU_R|MMU_W);
 		}
 		it = it->next;
 	};
@@ -78,9 +78,9 @@ void prc_giveAccessToKernel(PCB* pcb, bool status)
 //
 #if (defined(DEBUG) && DEBUGBUILD_FAST_USERSPACE_CHECK) || (!defined(DEBUG) && RELEASEBUILD_FAST_USERSPACE_CHECK)
 	if (status)
-		hw_cpu_setProcessKeys(MMU_KEY(0,0,PID_KERNEL));
+		hw_cpu_setProcessKeys(PID_ANY); // Set to override MMU
 	else
-		hw_cpu_setProcessKeys(MMU_KEY(PID_KERNEL, PID_KERNEL, PID_KERNEL));
+		hw_cpu_setProcessKeys(PID_KERNEL); // Set to Kernel pages only
 #else
 	prc_setPagesAccess(pcb, status ? PID_KERNEL : pcb->info.pid);
 #endif
@@ -209,7 +209,7 @@ static bool prc_setupMemory(
 	}
 
 	pcb->info.memory = mmu_countPages(pcb->info.pid) * MMU_PAGE_SIZE;
-	krn.info.mem_available = mmu_countPages(PID_NONE)*MMU_PAGE_SIZE;
+	krn.info.mem_available = mmu_countPages(PID_INVALID)*MMU_PAGE_SIZE;
 	return TRUE;
 }
 
@@ -240,8 +240,7 @@ PCB* prc_initKernelPrc(void)
 	linkedlist_addAfter(&rootthread, &rootthread);
 	
 	uint32_t flags = hw_cpu_getFlagsRegister();
-	flags = (flags & 0xFF000000) |
-		MMU_KEY(rootpcb.info.pid, rootpcb.info.pid, rootpcb.info.pid);
+	flags = (flags & 0xFF000000) | rootpcb.info.pid;
 	hw_cpu_setFlagsRegister(flags);
 	
 	#if 0
@@ -268,8 +267,8 @@ TCB* prc_createThread(PCB* pcb, ThreadEntryFuncWrapper entryFuncWrapper,
 	ThreadEntryFunc entryFunc, u32 stackSize, void* userdata, bool privileged)
 {
 	u32 stackNumPages = SIZE_TO_PAGES(stackSize);
-	u32 firstPage = mmu_findFreeAndSet(stackNumPages, pcb->info.pid, true, true,
-		false);
+	u32 firstPage = mmu_findFreeAndSet(
+		stackNumPages, pcb->info.pid, MMU_R|MMU_W);
 	if (firstPage==-1) {
 		KERNEL_DEBUG("Not enough contiguous pages to create process heap");
 		return FALSE;
@@ -459,8 +458,7 @@ PCB* prc_create(const char* name, PrcEntryFunc entryfunc, bool privileged,
 	tcb->ctx->gregs[CPU_REG_PC] = (uint32_t)app_startup;
 	tcb->ctx->flags =
 		0x00000000 |
-		(privileged ? (1<<CPU_FLAGSREG_SUPERVISOR) : 0) |
-		MMU_KEY(pcb->info.pid, pcb->info.pid, pcb->info.pid);
+		(privileged ? (1<<CPU_FLAGSREG_SUPERVISOR) : 0) | pcb->info.pid;
 		
 	// Setup the links
 	linkedlist_addAfter(rootpcb.previous, pcb);
@@ -583,7 +581,7 @@ void prc_delete(PCB* pcb)
 {
 	kernel_check(pcb!=&rootpcb);
 	handles_destroy(pcb->mainthread->handle, pcb->info.pid);
-	krn.info.mem_available = mmu_countPages(PID_NONE)*MMU_PAGE_SIZE;
+	krn.info.mem_available = mmu_countPages(PID_INVALID)*MMU_PAGE_SIZE;
 }
 
 void prc_calcCpuStats(PCB* pcb)

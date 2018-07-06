@@ -120,7 +120,7 @@ const char* hw_cpu_getIntrReasonMsg(uint32_t reason);
  * \param key Key to check.
  * \return TRUE or FALSE
  */
-#define hw_cpu_setMMUTable(mmuTablePtr) \
-	hw_hwiSimple1(HWBUS_CPU, HW_CPU_FUNC_SETMMUTABLE, mmuTablePtr)
+#define hw_cpu_setMMUTable(mmuTablePtr, mmuNumEntries) \
+	hw_hwiSimple2(HWBUS_CPU, HW_CPU_FUNC_SETMMUTABLE, mmuTablePtr, mmuNumEntries)
 
 #endif

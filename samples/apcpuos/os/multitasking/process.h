@@ -17,9 +17,9 @@
 
 #define PRC_MIN_STACKSIZE 64
 
-#define PID_NONE 0
+#define PID_ANY 0
 #define PID_KERNEL 1
-#define PID_INVALID 255
+#define PID_INVALID MMU_INVALID
 
 //
 // PCB stands for Process Control Block

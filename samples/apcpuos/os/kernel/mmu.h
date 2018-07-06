@@ -9,13 +9,6 @@
 #include "stddef_shared.h"
 #include "stdint_shared.h"
 
-
-typedef enum MMUMemAccess {
-	kMMUAccess_Read=0xFF<<(2*8),
-	kMMUAccess_Write=0xFF<<(1*8),
-	kMMUAccess_Execute=0xFF<<(0*8)
-} MMUMemAccess;
-
 #define MMU_TABLE_SIZE (SIZE_TO_PAGES(ramAmount)*4)
 
 /*!
@@ -24,7 +17,7 @@ typedef enum MMUMemAccess {
  * a malicious process can exploit system calls by passing pointers pointing to
  * wherever it wants.
  */
-bool mmu_check_user(struct PCB *pcb, MMUMemAccess access, void* addr, size_t size);
+bool mmu_check_user(struct PCB *pcb, u32 access, void* addr, size_t size);
 
 
 /*!
@@ -43,8 +36,7 @@ bool mmu_check_user(struct PCB *pcb, MMUMemAccess access, void* addr, size_t siz
 *	No checks are made if the pages already belong to another process.
 *	So, use the other functions to first check for free pages
 */
-void mmu_setPages(int firstPage, int numPages,
-	uint8_t pid, bool read, bool write, bool execute);
+void mmu_setPages(int firstPage, int numPages, uint8_t pid, u32 access);
 
 
 
@@ -60,8 +52,7 @@ int mmu_findFreePages(int numPages);
 * \return
 *	First page, or -1 if it failed to find enough adjacent free pages
 */
-int mmu_findFreeAndSet(int numPages, uint8_t pid, bool read, bool write,
-	bool execute);
+int mmu_findFreeAndSet(int numPages, uint8_t pid, u32 access);
 
 /*!
  * Sets all pages of the specific process ID as not used anymore
@@ -78,19 +69,24 @@ void mmu_freePagesRange(int firstPage, int numPages);
  */
 int mmu_countPages(uint8_t pid);
 
-#define MMU_KEY(readKey,writeKey,executeKey) \
-	((readKey)<<16 | (writeKey)<<8 | (executeKey))
-	
+#define MMU_R (1<<9)
+#define MMU_W (1<<8)
+#define MMU_X (1<<7)
+#define MMU_ALL (MMU_R|MMU_W|MMU_X)
+
 #define ADDR_TO_PAGE(addr) ((uint32_t)(addr) / MMU_PAGE_SIZE)
 #define PAGE_TO_ADDR(page) ((uint8_t*)((uint32_t)(page) * MMU_PAGE_SIZE))
 #define SIZE_TO_PAGES(size) \
 	(((size) / MMU_PAGE_SIZE) + (((size)%MMU_PAGE_SIZE) ? 1 : 0))
 #define PAGES_TO_SIZE(pages) \
 	((pages)*MMU_PAGE_SIZE)
-
+	
+#define MMU_PAGEMASK (~(MMU_PAGE_SIZE-1))
 // Special values for the page permissions keys
 #define MMU_ANY 0
-#define MMU_NONE 255
+#define MMU_KEYMASK 0x7F
+#define MMU_INVALID 0x7F
+
 
 #endif
 

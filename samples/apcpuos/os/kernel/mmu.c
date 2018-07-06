@@ -24,51 +24,49 @@ MMUData mmu;
 /*
 MMU NOTES
 
-The mmu table consists of a word for every page, with the keys for access, which
-are compared against the keys in the flags register.
-The format for words in the mmu table is as follow
-this format:
-.. XX XX XX
-|  |  |  !-- Execute key
-|  |  !----- Write key
-|  !-------- Read key
-!----------- Not used by the hardware. The code can use it for whatever it wants
-             In our case, we use it to tell if the page is used or not.
+Each entry in the MMU table is 32 bits (1 word), with the bits having the 
+following meaning:
+--------------------------------------------------------------------------------
+MMU Table entry
+--------------------------------------------------------------------------------
+\3\3\2\2\2\2\2\2\ \2\2\2\2\1\1\1\1\ \1\1\1\1\1\1\ \ \ \ \ \ \ \ \ \ \ \ 
+ \1\0\9\8\7\6\5\4\ \3\2\1\0\9\8\7\6\ \5\4\3\2\1\0\9\8\ \7\6\5\4\3\2\1\0\
+  [    Physical page                            ] R W   X [   key     ] 
+       |                                          | |   |      |
+	   |                                          | |   |      !----- Access key
+	   |                                          | |   !------------ (0 : No executing allowed. 1 : Execute allowed)
+	   |                                          | !---------------- (0 : No writing allowed. 1 : Writing allowed)
+	   |                                          !------------------ (0 : No reading allowed. 1 : Reading allowed)
+	   !------------------------------------------------------------- Physical page address
 
-The keys contained in the flags register are in the same format:
-.. XX XX XX
-|  |  |  !-- Execute key for the current process
-|  |  !----- Write key for the current process
-|  !-------- Read key for the current process
-!----------- The other cpu flags
+For a memory access to be successful, the access permissions R/W/X need to match
+the request access type, and the "key" value in the entry needs to match the
+"key" value from the flags registers.
+A value of 0 for the "key" in both the MMU table entry and the flags register
+has a special meaning:
+- 0 in the MMU Table entry will allow access with any key from the flags
+register, provided the R/W/X permissions are still satisfied.
+- 0 in the flags register key will completely override MMU permission checks.
+This is useful for a kernel, to quickly enable/disable complete access to the 
+entire memory.
 
-	--- Values in the mmu table entries ---
-	
-- A key of 0 in the mmu table means no restrictions to any processes.
-- A key of 0xFF (255) in the mmu table means no access at all.
-- A key of 1..254 means only a process with the same key as access, or a process
-  with an override (see bellow)
-
-Examples of mmu entries:
-0x00 00 00 00
-	No Restrictions at all
-0x00 FF FF 00
-	No read or write permission, but any process can execute
-0x00 01 01 00
-	Process with key 0x01 can read and write, and any process can execute
-
-	--- Values in the flags register ---
-	
-The keys in the flags register can override the mmu table, using the special
-value of 0x00 in that key. E.g:
-
-0x .. 00 00 00
-	The process has free access to any pages
-
-0x .. 01 01 00
-	- The process has read and write access to pages that specify also have the
-	   read and write key as 0x01
-	- The process has free execute permissions on any page
+The Flags registers has the following format:
+--------------------------------------------------------------------------------
+Flags registers
+--------------------------------------------------------------------------------
+\3\3\2\2\2\2\2\2\ \2\2\2\2\1\1\1\1\ \1\1\1\1\1\1\ \ \ \ \ \ \ \ \ \ \ \ 
+ \1\0\9\8\7\6\5\4\ \3\2\1\0\9\8\7\6\ \5\4\3\2\1\0\9\8\ \7\6\5\4\3\2\1\0\
+  N Z C V I S                                             [  MMU KEY  ]
+  | | | | | |                                              |
+  | | | | | |                                              !-- Key to use to access memory
+  | | | | | |                                                  Special values: 0 = master key. Memory operations will ignore the [key] specified in the MMU table
+  | | | | | |
+  | | | | | !- Supervisor mode
+  | | | | !--- IRQ disabled 
+  | | | !----- Overflow
+  | | !------- Carry
+  | !--------- Zero
+  !----------- Negative
 
 
 Now, with the considerations above, and considering the kernel process key is
@@ -110,34 +108,39 @@ Now, with the considerations above, and considering the kernel process key is
 
 */
 
-bool mmu_check_user(struct PCB *pcb, MMUMemAccess access, void* addr, size_t size)
+bool mmu_check_user(struct PCB *pcb, u32 access, void* addr, size_t size)
 {
 	uint32_t page1 = ADDR_TO_PAGE(addr);
 	uint32_t page2 = ADDR_TO_PAGE((uint8_t*)addr+size-1);
 	if (page1>=mmu.numPages || page2>=mmu.numPages)
 		return FALSE;
 
-	uint32_t processKeys = pcb->mainthread->ctx->flags & 0x00FFFFFF;
-	uint32_t prckeymask = processKeys & access;
-	uint32_t p1mask = access & mmu.table[page1];
-	uint32_t p2mask = access & mmu.table[page2];
+	uint32_t processKey= pcb->mainthread->ctx->flags & MMU_KEYMASK;
 	
-	if ( prckeymask==0 || // Current ctx has access, overriding whatever the mmu table says
-		((p1mask==0 || p1mask==prckeymask) && (p2mask==0 || p2mask==prckeymask))){
+	// If current ctx has master key, no need for checks
+	if (processKey==0)
 		return TRUE;
-	} else {
-		return FALSE;
+		
+	for(int vpage = page1; vpage<=page2; vpage++)
+	{
+		u32 entry = mmu.table[vpage];
+		u32 pageKey = entry & MMU_KEYMASK;
+		if (!
+			((pageKey==0 || pageKey==processKey) &&
+			(entry & access)==access))
+		{
+			return FALSE;
+		}
 	}
+	
+	return TRUE;
 }
 
-void mmu_setPages(int firstPage, int numPages,
-	uint8_t pid, bool read, bool write, bool execute)
+void mmu_setPages(int firstPage, int numPages, uint8_t pid, u32 access)
 {
-	uint32_t key = pid<<24 |
-		MMU_KEY(read ? pid : MMU_NONE, write ? pid : MMU_NONE, execute ? pid : MMU_NONE);
-		
+	uint32_t key = access | pid;
 	for(int i=firstPage; i<firstPage+numPages; i++) {
-		mmu.table[i] = key;
+		mmu.table[i] = (mmu.table[i] & MMU_PAGEMASK) | key;
 	}	
 }
 
@@ -146,7 +149,7 @@ int mmu_findFreePages(int numPages)
 	int firstPage=0;
 	int found=0;
 	for(int i=0; i<mmu.numPages; i++) {
-		if (mmu.table[i]>>24 == PID_NONE) {
+		if ((mmu.table[i] & MMU_KEYMASK) == PID_INVALID) {
 			if (found==0)
 				firstPage = i;
 			found++;
@@ -160,30 +163,29 @@ int mmu_findFreePages(int numPages)
 	return -1;
 }
 
-int mmu_findFreeAndSet(int numPages, uint8_t pid, bool read, bool write,
-	bool execute)
+int mmu_findFreeAndSet(int numPages, uint8_t pid, u32 access)
 {
 	int firstPage = mmu_findFreePages(numPages);
 	if (firstPage==-1)
 		return -1;
-	mmu_setPages(firstPage, numPages, pid, read, write, execute);
+	mmu_setPages(firstPage, numPages, pid, access);
 	return firstPage;
 }
 
 void mmu_freePages(uint8_t pid)
 {
-	uint32_t key = PID_NONE<<24 | MMU_KEY(MMU_NONE, MMU_NONE, MMU_NONE);
+	uint32_t key = 0 | PID_INVALID;
 	for(int i=0; i<mmu.numPages; i++) {
-		if ((mmu.table[i]>>24)==pid)
-			mmu.table[i] = key;
+		if ((mmu.table[i] & MMU_KEYMASK) == pid)
+			mmu.table[i] = (mmu.table[i] & MMU_PAGEMASK) | key;
 	}
 }
 
 void mmu_freePagesRange(int firstPage, int numPages)
 {
-	uint32_t key = PID_NONE<<24 | MMU_KEY(MMU_NONE, MMU_NONE, MMU_NONE);
+	uint32_t key = 0 | PID_INVALID;
 	for(int i=firstPage; i<firstPage+numPages; i++) {
-		mmu.table[i] = key;
+		mmu.table[i] = (mmu.table[i] & MMU_PAGEMASK) | key;
 	}
 }
 
@@ -191,25 +193,25 @@ int mmu_countPages(uint8_t pid)
 {
 	int count=0;
 	for(int i=0; i<mmu.numPages; i++) {
-		if ((mmu.table[i]>>24)==pid)
+		if ((mmu.table[i]&MMU_KEYMASK)==pid)
 			count++;
 	}
 	return count;
 }
 
 
-
 /*
 Sets permissions for pages in the memory range [startAddr ... startAddr+size[
 */
 void mmu_setPagesInMemRange(
-	void* startAddr, uint32_t size, uint8_t pid, uint32_t key)
+	void* startAddr, uint32_t size, uint8_t pid, uint32_t access)
 {
 	uint32_t firstPage = ADDR_TO_PAGE(startAddr);
 	uint32_t numPages = SIZE_TO_PAGES(size);
 	
+	uint32_t key = access | pid;
 	for(int i=firstPage; i<firstPage+numPages; i++) {
-		mmu.table[i] = pid<<24 | key;
+		mmu.table[i] = (mmu.table[i] & MMU_PAGEMASK) | key;
 	}
 }
 
@@ -224,40 +226,46 @@ void mmu_init(size_t krnFirstPage, size_t krnNumPages, void* mmutableaddr)
 	assert( isAligned(processInfo.readWriteAddr,MMU_PAGE_SIZE) );
 	assert( isAligned(processInfo.sharedReadWriteAddr,MMU_PAGE_SIZE) );
 	
+	
+	// First, map the vpages to ppages
+	for(int i=0; i<mmu.numPages; i++) {
+		mmu.table[i] = i * MMU_PAGE_SIZE;
+	}
+	
 	/* By default, no access at all */
-	mmu_setPagesInMemRange(0, ramAmount, PID_NONE, MMU_KEY(MMU_NONE, MMU_NONE, MMU_NONE));
+	mmu_setPagesInMemRange(0, ramAmount, PID_INVALID, 0);
 
 	/* setup .text/.rodata */
 	mmu_setPagesInMemRange(
 		(void*)processInfo.readOnlyAddr, processInfo.readOnlySize,
-		PID_KERNEL, MMU_KEY(MMU_ANY, MMU_NONE, MMU_ANY));
+		PID_ANY, MMU_R|MMU_X);
 
 	/* setup .data/.bss */
 	// Kernel can read/write
 	mmu_setPagesInMemRange(
 		(void*)processInfo.readWriteAddr, processInfo.readWriteSize,
-		PID_KERNEL, MMU_KEY(PID_KERNEL,PID_KERNEL,MMU_NONE));
+		PID_KERNEL, MMU_R|MMU_W);
 	
 	/* setup .data_shared/.bss_shared */
 	// Kernel can read. No write at all (so we can use this data to initialize
 	// other processes shared data)
 	mmu_setPagesInMemRange(
 		(void*)processInfo.sharedReadWriteAddr, processInfo.sharedReadWriteSize,
-		PID_KERNEL, MMU_KEY(PID_KERNEL,MMU_NONE,MMU_NONE));
+		PID_KERNEL, MMU_R);
 		
-	/* set kernel heap pages */
-	mmu_setPages( krnFirstPage, krnNumPages, PID_KERNEL, true, true, false);
+	/* set kernel heap pages (read/write) */
+	mmu_setPages( krnFirstPage, krnNumPages, PID_KERNEL, MMU_R|MMU_W);
 	
 	/* Set first page as read/write, so we can access the interrupted context */
-	mmu_setPages( 0, 1, PID_KERNEL, true, true, false );
+	mmu_setPages( 0, 1, PID_KERNEL, MMU_R|MMU_W);
 
 	/* Reserve the last few pages for the screen buffer */
 	uint32_t screenBufferSize = hw_scr_getBufferSize();	
 	mmu_setPagesInMemRange((void*)(ramAmount-screenBufferSize),screenBufferSize,
-		PID_KERNEL, MMU_KEY(MMU_ANY,MMU_ANY,255));
+		PID_ANY, MMU_R|MMU_W);
 
 	// set the mmu table
-	hw_cpu_setMMUTable((uint32_t)(mmu.table));
+	hw_cpu_setMMUTable((uint32_t)(mmu.table), mmu.numPages);
 
 	// Switch back to our own context, to trigger the mmu to update
 	// TODO : Is something like this needed now that ctx_switch has changed?

@@ -16,5 +16,5 @@
 		".\\graphsystem\\graphsystem.apcpuprj"
 	],
 	"startup_project": "os",
-	"active_configuration": "Release"
+	"active_configuration": "Debug"
 }

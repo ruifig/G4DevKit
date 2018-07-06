@@ -25,7 +25,7 @@ typedef unsigned char bool;
 // Otherwise we would need seperate blocks with #ifdef __syntax_parser__
 #ifdef __syntax_parser__
 	#define __reg(x)
-	#define INLINEASM(str)
+	#define INLINEASM(str) { return 0; }
 #else
 	#define INLINEASM(str) =str
 #endif

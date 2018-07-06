@@ -11,7 +11,7 @@
 #include "appslist.h"
 #include "appsdk/kernel_shared/txtui_shared.h"
 
-static bool check_user_ptr(struct PCB *pcb, MMUMemAccess access, void* addr,
+static bool check_user_ptr(struct PCB *pcb, uint32_t access, void* addr,
 	size_t size)
 {
 	if (mmu_check_user(pcb, access, addr, size))
@@ -38,11 +38,11 @@ bool syscall_createProcess(void)
 	argsSize = min(argsSize, PRC_ARGUMENTS_MAXSIZE);
 
 	// Make sure the process can write to the address it has given us
-	if (!check_user_ptr(pcb, kMMUAccess_Write, info, sizeof(*info)))
+	if (!check_user_ptr(pcb, MMU_W, info, sizeof(*info)))
 		return FALSE;
 		
 	// Make sure args string the process passed is valid
-	if (!check_user_ptr(pcb, kMMUAccess_Write, args, argsSize))
+	if (!check_user_ptr(pcb, MMU_W, args, argsSize))
 		return FALSE;
 
 	ProcessCreateInfo localInfo;
@@ -150,7 +150,7 @@ bool syscall_setThreadTLS(void)
 	PCB* pcb = krn.currTcb->pcb;
 
 	// Make sure the process can write to the address it has given us
-	if (!check_user_ptr(pcb, kMMUAccess_Write, tlsVarPtr, sizeof(*tlsVarPtr)))
+	if (!check_user_ptr(pcb, MMU_W, tlsVarPtr, sizeof(*tlsVarPtr)))
 		return FALSE;
 	
 	krn.currTcb->tlsVarPtr = tlsVarPtr;
@@ -177,7 +177,7 @@ bool syscall_getMessage(void)
 	bool waitForMessage = regs[1];
 
 	// Make sure the process can write to the address it has given us
-	if (!check_user_ptr(pcb, kMMUAccess_Write, msg, sizeof(*msg)))
+	if (!check_user_ptr(pcb, MMU_W, msg, sizeof(*msg)))
 		return FALSE;
 
 	prc_giveAccessToKernel(pcb, true);
@@ -286,7 +286,7 @@ bool syscall_getProcessInfo(void)
 	bool updateStats = (bool)regs[1];
 
 	// Check if the process can write to the address it has given us
-	if (!check_user_ptr(pcb, kMMUAccess_Write, dst, sizeof(*dst)))
+	if (!check_user_ptr(pcb, MMU_W, dst, sizeof(*dst)))
 		return FALSE;
 
 	if (updateStats)
@@ -309,9 +309,9 @@ bool syscall_getOSInfo(void)
 	uint32_t flags = regs[3];
 
 	// Make sure the process can write to the address it has given us
-	if (!check_user_ptr(pcb, kMMUAccess_Write, dst_osinfo, sizeof(*dst_osinfo)))
+	if (!check_user_ptr(pcb, MMU_W, dst_osinfo, sizeof(*dst_osinfo)))
 		return FALSE;
-	if (!check_user_ptr(pcb, kMMUAccess_Write, dst_prc,
+	if (!check_user_ptr(pcb, MMU_W, dst_prc,
 						dst_size*sizeof(*dst_prc)))
 		return FALSE;
 
@@ -396,7 +396,7 @@ bool syscall_diskDriveRead(void)
 	char * data = (char *)regs[2];
 	int size = (int) regs[3];
 	
-	if (!check_user_ptr(pcb, kMMUAccess_Write, data, size))
+	if (!check_user_ptr(pcb, MMU_W, data, size))
 		return FALSE;
 	
 	prc_giveAccessToKernel(pcb, true);
@@ -416,7 +416,7 @@ bool syscall_diskDriveWrite(void)
 	const char * data = (char *)regs[2];
 	int size = (int) regs[3];
 	
-	if (!check_user_ptr(pcb, kMMUAccess_Read, data, size))
+	if (!check_user_ptr(pcb, MMU_R, data, size))
 		return FALSE;
 	
 	prc_giveAccessToKernel(pcb, true);
@@ -459,7 +459,7 @@ bool syscall_diskDriveGetInfo(void)
 	u32 diskNum = (u32)regs[0];
 	DISK_INFO * disk_info = (DISK_INFO *)regs[1];
 	
-	if (!check_user_ptr(pcb, kMMUAccess_Write, disk_info, sizeof(*disk_info)))
+	if (!check_user_ptr(pcb, MMU_W, disk_info, sizeof(*disk_info)))
 		return FALSE;
 	
 	prc_giveAccessToKernel(pcb, true);
@@ -484,7 +484,7 @@ bool syscall_setCanvas(void)
 	
 	if (
 		size!= hw_scr_getBufferSize() ||
-		!check_user_ptr(pcb, kMMUAccess_Write, canvas, size))
+		!check_user_ptr(pcb, MMU_W, canvas, size))
 	{
 		regs[0] = FALSE;
 	} else {
@@ -506,7 +506,7 @@ bool syscall_setStatusBar(void)
 	const char* str = (const char*)regs[0];
 	size_t size = regs[1];
 	
-	if (!check_user_ptr(pcb, kMMUAccess_Write, str, size)
+	if (!check_user_ptr(pcb, MMU_W, str, size)
 		|| krn.focusedPcb==NULL || krn.focusedPcb->canvas==NULL) {
 		regs[0] = FALSE;
 	} else {
@@ -540,7 +540,7 @@ bool syscall_processScreenshot(void)
 	PCB* sourcePcb = prc_findByPID(pid);
 	
 	if ( !sourcePcb || !sourcePcb->canvas ||
-		!check_user_ptr(pcb, kMMUAccess_Write, dst, size)
+		!check_user_ptr(pcb, MMU_W, dst, size)
 		) {
 		regs[0] = 0;
 	} else {
@@ -570,7 +570,7 @@ bool syscall_outputDebugString(void)
 	// exploits
 	char* userstr = (char*)regs[0];
 	uint32_t size = regs[1];
-	if (!check_user_ptr(pcb, kMMUAccess_Read, userstr, size))
+	if (!check_user_ptr(pcb, MMU_R, userstr, size))
 		return FALSE;
 	
 	prc_giveAccessToKernel(pcb, true);
