@@ -5,7 +5,7 @@
 .text
 .word _boot
 .word _boot
-.zero 208
+.zero 232
 
 ;
 ; Things we need from the C file

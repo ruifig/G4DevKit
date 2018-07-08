@@ -5,7 +5,7 @@
 .text
 .word _startup
 .word _startup
-.zero 208
+.zero 232
 
 
 ;

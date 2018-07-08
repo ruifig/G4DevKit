@@ -25,7 +25,7 @@ public _interruptedCtx;
 .word _boot
 .word _interruptHandler
 _interruptedCtx:
-.zero 208
+.zero 232
 
 _boot:
 	bl _handleReset
@@ -85,7 +85,7 @@ _causeUndefinedInstruction:
 public _causeIllegalInstruction
 _causeIllegalInstruction:
 	mov r0,0
-	msr r0 ; Set the flags register 0, which disable the Supervisor Mode bit
+	msr flags, r0 ; Set the flags register 0, which disable the Supervisor Mode bit
 	; This should now cause a "Illegal instruction" interrupt, as 'hwi' is a
 	; privileged instruction
 	hwf

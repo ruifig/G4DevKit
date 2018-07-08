@@ -27,8 +27,8 @@ extern _krn_prevIntrBusAndReason
 
 public _intrCtx
 _intrCtx:
-.zero 208
-.zero 808
+.zero 232
+.zero 784
 
 public _boot
 _boot:

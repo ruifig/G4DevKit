@@ -14,10 +14,9 @@
 typedef struct CpuCtx
 {
 	uint32_t gregs[CPU_NUM_GREGS]; // general purpose registers
-	uint32_t flags;
-	uint32_t reserved;
 	uint32_t rims[2];
 	double fregs[CPU_NUM_FREGS]; // floating point registers
+	uint32_t crregs[CPU_NUM_CRREGS];
 } CpuCtx;
 
 
@@ -36,17 +35,17 @@ rdtsc r0:r0");
  */
 void hw_cpu_disableIRQ(void)
 INLINEASM("\t\
-mrs r0 ; load flags register\n\t\
+mrs r0, flags ; load flags register\n\t\
 or r0, r0, 1<<27 ; set bit 27 \n\t\
-msr r0 ; set flags register");
+msr flags, r0 ; set flags register");
 
 uint32_t hw_cpu_getFlagsRegister(void)
 INLINEASM("\t\
-mrs r0 ; load flags register");
+mrs r0, flags ; load flags register");
 
 void hw_cpu_setFlagsRegister(__reg("r0") uint32_t flags)
 INLINEASM("\t\
-msr r0 ; set flags register");
+msr flags, r0 ; set flags register");
 
 // TODO : Is this correct with the new cpu refactoring?
 uint32_t hw_cpu_nextIRQ(
@@ -65,9 +64,9 @@ mov r0, ip\n\t\
  */
 void hw_cpu_enableIRQ(void)
 INLINEASM("\t\
-mrs r0 ; load flags register \n\t\
+mrs r0, flags ; load flags register \n\t\
 and r0, r0, ~(1<<27) ; clear bit 27 \n\t\
-msr r0 ; set flags register");
+msr flags, r0 ; set flags register");
 
 /*! Sets the process keys in the flags register
 */

@@ -14,7 +14,7 @@ extern _interruptHandler
 ; Where interrupted contexts are saved
 public _interruptedCtx
 _interruptedCtx:
-.zero 208
+.zero 232
 
 _intrHandlerStack:
 .zero 1024

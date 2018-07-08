@@ -5,7 +5,7 @@
 
 .word _startup
 .word _startup
-.zero 208
+.zero 232
 
 public _startup
 _startup:
@@ -37,9 +37,6 @@ _startup:
 		ldrub r2, [r1] ; read character
 		cmp r2, 0 ; check for end of string
 		bne printCharacter
-	
-		mov r0, 10000000
-		str [r0], 0
 	infiniteLoop:
 		b infiniteLoop
 

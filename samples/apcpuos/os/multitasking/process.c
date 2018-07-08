@@ -292,7 +292,7 @@ TCB* prc_createThread(PCB* pcb, ThreadEntryFuncWrapper entryFuncWrapper,
 	tcb->ctx->gregs[CPU_REG_DS] = (uint32_t)pcb->ds;
 	tcb->ctx->gregs[CPU_REG_SP] = (uint32_t)tcb->stackTop;
 	tcb->ctx->gregs[CPU_REG_PC] = (uint32_t)entryFuncWrapper;
-	tcb->ctx->flags =
+	tcb->ctx->crregs[CPU_CRREG_FLAGS] =
 		0x00000000 |
 		(privileged ? (1<<CPU_FLAGSREG_SUPERVISOR) : 0) |
 		(pcb->info.pid<<16 | pcb->info.pid<<8 | pcb->info.pid);
@@ -456,7 +456,7 @@ PCB* prc_create(const char* name, PrcEntryFunc entryfunc, bool privileged,
 	tcb->ctx->gregs[CPU_REG_DS] = (uint32_t)pcb->ds;
 	tcb->ctx->gregs[CPU_REG_SP] = (uint32_t)tcb->stackTop;
 	tcb->ctx->gregs[CPU_REG_PC] = (uint32_t)app_startup;
-	tcb->ctx->flags =
+	tcb->ctx->crregs[CPU_CRREG_FLAGS] =
 		0x00000000 |
 		(privileged ? (1<<CPU_FLAGSREG_SUPERVISOR) : 0) | pcb->info.pid;
 		

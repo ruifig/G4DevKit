@@ -16,9 +16,9 @@ static int ctxswitch(Ctx* new, Ctx* curr)
 INLINEASM("\t\
 ctxswitch [r0], [r1]");
 
-static int mrs(void)
+static int crreg_flags(void)
 INLINEASM("\t\
-mrs r0");
+mrs r0, flags");
 
 //
 // Internal functions
@@ -81,7 +81,7 @@ void co_create(Coroutine* co, void* stack, int stackSize, CoroutineEntry entry,
 	// setup where to start executing, and parameters to the execution function
 	co->cpuState.gregs[CPU_REG_PC] = (u32)&runCoroutine;
 	// We set flag register to match the creator
-	co->cpuState.flags[0] = mrs() & 0x0FFFFFFF;
+	co->cpuState.crregs[0] = crreg_flags() & 0x0FFFFFFF;
 	// Setup parameters for runCoroutine
 	// NOTE: We don't need to set r0, because that's set when running the
 	// coroutine, as part of co_yield

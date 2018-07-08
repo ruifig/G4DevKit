@@ -115,7 +115,7 @@ bool mmu_check_user(struct PCB *pcb, u32 access, void* addr, size_t size)
 	if (page1>=mmu.numPages || page2>=mmu.numPages)
 		return FALSE;
 
-	uint32_t processKey= pcb->mainthread->ctx->flags & MMU_KEYMASK;
+	uint32_t processKey= pcb->mainthread->ctx->crregs[CPU_CRREG_FLAGS] & MMU_KEYMASK;
 	
 	// If current ctx has master key, no need for checks
 	if (processKey==0)

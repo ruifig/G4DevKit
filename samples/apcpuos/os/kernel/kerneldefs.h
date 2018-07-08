@@ -7,10 +7,12 @@
 
 #define CPU_NUM_GREGS 16
 #define CPU_NUM_FREGS 16
+#define CPU_NUM_CRREGS 16
 
 #define CPU_REG_DS 11
 #define CPU_REG_SP 13
 #define CPU_REG_PC 15
+#define CPU_CRREG_FLAGS 0
 
 #define MMU_PAGE_SIZE (1024*1)
 
