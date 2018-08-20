@@ -1,8 +1,8 @@
 {
 	"format": "Project",
 	"version": 1,
-	"name": "scratchpad",
-	"type": 1,
+	"name": "testlib",
+	"type": 2,
 	"globalconfiguration": {
 		"name": "Global",
 		"includePaths": [
@@ -18,22 +18,18 @@
 		{
 			"name": "Debug",
 			"includePaths": [
-				"$(SolutionDir)\/common",
-				"$(SolutionDir)\/cstdlib",
-				"$(SolutionDir)\/hardware"
+
 			],
 			"defines": [
 				"DEBUG"
 			],
-			"compilerOptions": "-v -c99 -O2 -g -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153",
+			"compilerOptions": "-c99 -O2 -g -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153",
 			"linkerextralibs": ""
 		},
 		{
 			"name": "Release",
 			"includePaths": [
-				"$(SolutionDir)\/common",
-				"$(SolutionDir)\/cstdlib",
-				"$(SolutionDir)\/hardware"
+
 			],
 			"defines": [
 				"NDEBUG"
@@ -47,11 +43,11 @@
 	],
 	"files": [
 		{
-			"path": ".\\scratchpad.asm",
-			"bootfile": true
+			"path": ".\\testlib.c",
+			"bootfile": false
 		},
 		{
-			"path": ".\\scratchtest.c",
+			"path": ".\\testlib.h",
 			"bootfile": false
 		}
 	]

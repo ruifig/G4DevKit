@@ -13,7 +13,7 @@ _startup:
 	; Get the address of the screen device buffer
 	; Screen device is always on device bus 2
 	; Device function 0 gets the screen buffer address
-	mov ip, (0x2<<24) | 0 ;
+	mov ip, (0x2<<26) | 0 ;
 	hwf
 	
 	; The screen buffer address is returned in r0

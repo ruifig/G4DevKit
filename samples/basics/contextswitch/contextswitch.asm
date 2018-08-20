@@ -59,7 +59,7 @@ _startup:
 	; set the second's context flags register to be in Supervisor mode,
 	; otherwise it can't call hwf
 	mrs r0, flags ; Get current flags register
-	;str [_ctx + 200], r0; Set the flags register
+	str [_ctx + 200], r0; Set the flags register
 	
 	; Run the first context
 	mov r0, 0
@@ -67,8 +67,6 @@ _startup:
 	
 ; On entry, r0 has the context number
 _runCtx:
-	mrs r7, cr7
-	mrs r7, cr8
 	; Set a stack for this context
 	; sp = &_stackTop - (ctxNumber * 1024)
 	lea sp, [_stackTop]

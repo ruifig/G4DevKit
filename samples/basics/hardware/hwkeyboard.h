@@ -60,10 +60,6 @@ KeyEvent kyb_getNext(int* keyCode, bool block);
 */
 bool kyb_isPressed(int keyCode);
 
-/*! Enables/disables IRQ mode
-*/
-void kyb_setIRQMode(bool enabled);
-
 /*! Gets the next "Typed" event from the keyboard event queue.
 * \note
 *	All Pressed/Released events will be dropped until a Typed event is retrieved

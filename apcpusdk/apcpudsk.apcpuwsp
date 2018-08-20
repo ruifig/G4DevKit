@@ -1,0 +1,10 @@
+{
+	"format": "Workspace",
+	"version": 1,
+	"name": "apcpudsk",
+	"projects": [
+		".\\testlib\\testlib.apcpuprj"
+	],
+	"startup_project": "",
+	"active_configuration": "Debug"
+}

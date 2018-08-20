@@ -1,8 +1,20 @@
 .text
+
+.word _startup; boot
+.zero 128 ; Interrupt handlers
+.zero 232 ; Interrupt context
+
+_startup:
 extern _main
-	mrs r0
+	
+	.word -1
+	mov r0, -1
+	msr crirqmsk, r0
+	hlt
+	
+	mrs r0, flags
 	and r0, r0, ~(1<<27)
-	msr r0
+	msr flags, r0
 	
 	mov ip, (3<<24)|3
 	mov r0, 1

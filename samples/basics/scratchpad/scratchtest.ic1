@@ -1,0 +1,31 @@
+function fooFunc
+L1
+function s8_s32
+	convert char M0+0(FP)(a):r0->M0+4(FP)(000001E3C5AB60C0)[S] from int
+	set-return char M0+4(FP)(000001E3C5AB60C0)[S]
+L4
+function s8_u32
+	convert char M0+0(FP)(a):r0->M0+4(FP)(000001E3C5AB76D0)[S] from unsigned int
+	set-return char M0+4(FP)(000001E3C5AB76D0)[S]
+L8
+function u8_s32
+	convert unsigned char M0+0(FP)(a):r0->M0+4(FP)(000001E3C5AB76D0)[S] from int
+	set-return unsigned char M0+4(FP)(000001E3C5AB76D0)[S]
+L12
+function u8_u32
+	convert unsigned char M0+0(FP)(a):r0->M0+4(FP)(000001E3C5AB7850)[S] from unsigned int
+	set-return unsigned char M0+4(FP)(000001E3C5AB7850)[S]
+L16
+function test
+	convert int M0+0(FP)(a):r0->M0+1(FP)(000001E3C5ABA6B0)[S] from char
+	compare int M0+_b(b),M0+1(FP)(000001E3C5ABA6B0)[S]
+	bne L23
+L22
+	move int #I10->M0+5(FP)(000001E3C5AC2400)[S] size=4
+	bra L24
+L23
+	move int #I20->M0+5(FP)(000001E3C5AC2400)[S] size=4
+L24
+	convert char M0+5(FP)(000001E3C5AC2400)[S]->M0+9(FP)(000001E3C5AC2E00)[S] from int
+	set-return char M0+9(FP)(000001E3C5AC2E00)[S]
+L20

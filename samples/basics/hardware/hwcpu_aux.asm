@@ -12,24 +12,24 @@ _cpu_dbgbrk:
 
 public _cpu_setKey
 _cpu_setKey:
-	mrs r1 ; load flags register
+	mrs r1, flags ; load flags register
 	and r1, r1, ~(0x7F) ; clear lowest 7 bits
 	or r1, r1, r0
-	msr r1 ; and set the flags register to the new value
+	msr flags, r1 ; and set the flags register to the new value
 	mov pc, lr
 
 public _cpu_enableIRQ
 _cpu_enableIRQ:
-	mrs r0 ; load flags register
+	mrs r0, flags ; load flags register
 	and r0, r0, ~(1<<27) ; clear bit 27
-	msr r0 ; and set the flags register to the new value
+	msr flags, r0 ; and set the flags register to the new value
 	mov pc, lr
 
 public _cpu_disableIRQ
 _cpu_disableIRQ:
-	mrs r0 ; load flags register
+	mrs r0, flags; load flags register
 	or r0, r0, 1<<27 ; Set bit 27
-	msr r0 ; and set the flags register to the new value
+	msr flags, r0 ; and set the flags register to the new value
 	mov pc, lr
 	
 ; bool cpu_getNextIRQ(IRQData* dst, u8 busFilter);

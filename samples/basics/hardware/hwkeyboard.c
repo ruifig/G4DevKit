@@ -4,7 +4,6 @@
 #define HWKYBFUNC_CLEARBUFFER 0
 #define HWKYBFUNC_GETNEXT 1
 #define HWKYBFUNC_GETKEYSTATE 2
-#define HWKYBFUNC_SETIRQMODE 3
 
 void kyb_clearBuffer(void)
 {
@@ -33,14 +32,6 @@ bool kyb_isPressed(int keyCode)
 	int res = hwiCall(HWBUS_KYB, HWKYBFUNC_GETKEYSTATE, &data);
 	always_assert(res==HWIERR_SUCCESS);
 	return data.regs[0] ? true : false;
-}
-
-void kyb_setIRQMode(bool enabled)
-{
-	HwiData data;
-	data.regs[0] = enabled;
-	int res = hwiCall(HWBUS_KYB, HWKYBFUNC_SETIRQMODE, &data);
-	always_assert(res==HWIERR_SUCCESS);
 }
 
 int kyb_getNextTyped(void)

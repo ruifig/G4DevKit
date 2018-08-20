@@ -13,6 +13,11 @@ int derp(int a)
 	return fromDummy(a, a);
 }
 
+int derp2(void)
+{
+	return 0;
+}
+
 void someFunc()
 {
 }

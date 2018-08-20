@@ -15,8 +15,9 @@
 		".\\scratchpad\\scratchpad.apcpuprj",
 		".\\benchmark\\benchmark.apcpuprj",
 		".\\contextswitch_c\\contextswitch_c.apcpuprj",
-		".\\mmu\\mmu.apcpuprj"
+		".\\mmu\\mmu.apcpuprj",
+		"..\\..\\apcpusdk\\testlib\\testlib.apcpuprj"
 	],
-	"startup_project": "mmu",
+	"startup_project": "scratchpad",
 	"active_configuration": "Debug"
 }

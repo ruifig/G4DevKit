@@ -135,6 +135,7 @@ static bool readString(char* buf, int bufsize)
 
 static void hardwareTest_keyboard(void)
 {
+#if 0
 	scr_printf("Keyboard Tests\n");
 	int code;
 
@@ -174,4 +175,7 @@ static void hardwareTest_keyboard(void)
 		test++;
 	}
 	
+#endif
 }
+
+

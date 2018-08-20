@@ -20,7 +20,8 @@
 			"includePaths": [
 				"$(SolutionDir)\/common",
 				"$(SolutionDir)\/cstdlib",
-				"$(SolutionDir)\/hardware"
+				"$(SolutionDir)\/hardware",
+				"$(SolutionDir)\/..\/..\/apcpusdk\/testlib"
 			],
 			"defines": [
 				"DEBUG"

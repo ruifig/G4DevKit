@@ -18,7 +18,7 @@
 		{
 			"name": "Debug",
 			"includePaths": [
-
+				"$(SolutionDir)\/..\/..\/apcpusdk\/testlib"
 			],
 			"defines": [
 				"DEBUG"
@@ -41,12 +41,17 @@
 	"dependencies": [
 		"common",
 		"hardware",
-		"cstdlib"
+		"cstdlib",
+		"testlib"
 	],
 	"files": [
 		{
 			"path": ".\\contextswitch.asm",
 			"bootfile": true
+		},
+		{
+			"path": ".\\dummy.c",
+			"bootfile": false
 		}
 	]
 }

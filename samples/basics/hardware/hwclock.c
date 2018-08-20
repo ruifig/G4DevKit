@@ -2,8 +2,11 @@
 #include <assert.h>
 
 #define HWCLOCKFUNC_GET_TIMESINCEBOOT 0
-#define HWCLOCKFUNC_GET_TIMER 1
-#define HWCLOCKFUNC_SET_TIMER 2
+// #TODO : Implement this function
+#define HWCLOCKFUNC_STATE 1
+
+#define HWCLOCKFUNC_GET_TIMER 2
+#define HWCLOCKFUNC_SET_TIMER 3
 
 double clk_getRunningTimeSeconds(void)
 {
