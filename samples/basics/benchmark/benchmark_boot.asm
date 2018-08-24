@@ -2,9 +2,12 @@
 ;
 ;*******************************************************************************
 
-.text
-.word _boot
-.word _boot
+.word _startup ; RESET handler
+
+_ivt: ; Interrupt vector table
+.zero 128 ; 4*32
+
+_intrHCtx:
 .zero 232
 
 ;
@@ -13,13 +16,12 @@ extern _appMain
 extern _mmuTable
 extern _calcMMUTableSize
 
-_boot:
+_startup:
 	bl _calcMMUTableSize
 	; Make room for the mmu table, in the stack
 	sub sp, sp, r0
 	str [_mmuTable], sp
 	bl _appMain
-
 
 _bootLoop:
 	hlt

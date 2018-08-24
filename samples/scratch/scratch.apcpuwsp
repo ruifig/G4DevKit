@@ -5,8 +5,9 @@
 	"projects": [
 		".\\scratchpad\\scratchpad.apcpuprj",
 		".\\dummy\\dummy.apcpuprj",
-		".\\dummy2\\dummy2.apcpuprj"
+		".\\dummy2\\dummy2.apcpuprj",
+		".\\helloworld\\helloworld.apcpuprj"
 	],
-	"startup_project": "dummy2",
+	"startup_project": "helloworld",
 	"active_configuration": "Debug"
 }

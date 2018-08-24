@@ -1,12 +1,18 @@
 ;*******************************************************************************
 ; Bare minimum to print a null terminted string to the screen
 ;*******************************************************************************
-.text
 
-.word _startup
-.word _startup
+.word _startup ; RESET handler
+
+_ivt: ; Interrupt vector table
+.zero 128 ; 4*32
+
+_intrHCtx:
 .zero 232
 
+extern _getString
+
+.text
 public _startup
 _startup:
 
@@ -25,7 +31,10 @@ _startup:
 	;
 
 	; Pointer to the screen position to write to
-	lea r1, [_hello] ; Pointer to string to print
+	;lea r1, [_hello] ; Pointer to string to print
+	bl _getString
+	mov r1, r0
+	
 	ldrub r2, [r1] ; Get the first character
 
 	printCharacter:

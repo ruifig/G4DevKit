@@ -17,7 +17,7 @@ public _hwiCall
 _hwiCall:
 	push {r4,lr} ; save registers we will need to restore
 	
-	sll ip, r0, 24
+	sll ip, r0, 26
 	or ip, ip, r1	
 	mov r4, r2
 	

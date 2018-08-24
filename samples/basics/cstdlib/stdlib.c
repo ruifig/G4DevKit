@@ -7,7 +7,7 @@ void itoa(int value, char *str, int base)
 	int i;
 	unsigned v;
 	int sign;
-
+	
 	sign = (base == 10 && value < 0);
 	if (sign)   v = -value;
 	else    v = (unsigned)value;

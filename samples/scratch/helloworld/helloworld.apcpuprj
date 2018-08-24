@@ -1,7 +1,7 @@
 {
 	"format": "Project",
 	"version": 1,
-	"name": "scratchpad",
+	"name": "helloworld",
 	"type": 1,
 	"globalconfiguration": {
 		"name": "Global",
@@ -18,22 +18,18 @@
 		{
 			"name": "Debug",
 			"includePaths": [
-				"$(SolutionDir)\/common",
-				"$(SolutionDir)\/cstdlib",
-				"$(SolutionDir)\/hardware"
+
 			],
 			"defines": [
 				"DEBUG"
 			],
-			"compilerOptions": "-v -c99 -O2 -g -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153",
+			"compilerOptions": "-v -c99 -O2 -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153",
 			"linkerextralibs": ""
 		},
 		{
 			"name": "Release",
 			"includePaths": [
-				"$(SolutionDir)\/common",
-				"$(SolutionDir)\/cstdlib",
-				"$(SolutionDir)\/hardware"
+
 			],
 			"defines": [
 				"NDEBUG"
@@ -47,11 +43,11 @@
 	],
 	"files": [
 		{
-			"path": ".\\scratchpad.asm",
+			"path": ".\\helloworld.asm",
 			"bootfile": true
 		},
 		{
-			"path": ".\\scratchtest.c",
+			"path": ".\\misc.asm",
 			"bootfile": false
 		}
 	]

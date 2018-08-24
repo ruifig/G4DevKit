@@ -46,20 +46,21 @@ void initMMUTable(void)
 
 void appMain(void)
 {
-	initMMUTable();
-	cpu_setMMUTableAddress(mmuTable, mmuTableEntries);
+	//initMMUTable();
+	//cpu_setMMUTableAddress(mmuTable, mmuTableEntries);
 
 	int x,y;
 	scr_init();
-	
 	float f1;
 	float f2;
 	
 	double startTime = clk_getRunningTimeSeconds();
+	
 	while(1)
 	{
 		doWork();
 	}
+	#if 0
 	double endTime = clk_getRunningTimeSeconds();
 	uint32_t cycles = cpu_getCycles32();
 	
@@ -68,6 +69,7 @@ void appMain(void)
 	scr_printfAtXY(0,1, "Cycles: %u", cycles);
 	scr_printfAtXY(0,2, "Mhgz  : %4.4f", ((double)cycles/(endTime-startTime))/(1000*1000));
 		
+	#endif
 	
 	loopForever();
 }

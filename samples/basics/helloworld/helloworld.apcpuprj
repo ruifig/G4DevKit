@@ -47,6 +47,10 @@
 		{
 			"path": ".\\helloworld.asm",
 			"bootfile": true
+		},
+		{
+			"path": ".\\printchar.asm",
+			"bootfile": false
 		}
 	]
 }

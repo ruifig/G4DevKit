@@ -18,6 +18,6 @@
 		".\\mmu\\mmu.apcpuprj",
 		"..\\..\\apcpusdk\\testlib\\testlib.apcpuprj"
 	],
-	"startup_project": "scratchpad",
-	"active_configuration": "Debug"
+	"startup_project": "benchmark",
+	"active_configuration": "Release"
 }

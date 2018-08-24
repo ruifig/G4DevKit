@@ -31,7 +31,10 @@
 		{
 			"name": "Release",
 			"includePaths": [
-
+				"$(SolutionDir)\/common",
+				"$(SolutionDir)\/cstdlib",
+				"$(SolutionDir)\/hardware",
+				""
 			],
 			"defines": [
 				"NDEBUG"

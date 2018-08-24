@@ -48,10 +48,6 @@
 		{
 			"path": ".\\contextswitch.asm",
 			"bootfile": true
-		},
-		{
-			"path": ".\\dummy.c",
-			"bootfile": false
 		}
 	]
 }
