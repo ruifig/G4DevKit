@@ -23,7 +23,7 @@
 			"defines": [
 				"DEBUG"
 			],
-			"compilerOptions": "-c99 -g -O",
+			"compilerOptions": "-c99 -g -O -vv",
 			"linkerextralibs": ""
 		},
 		{

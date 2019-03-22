@@ -1,46 +1,28 @@
 .text
-.word _startup ; RESET handler
-.word _interruptH
-ctx:
-.zero 204 ; registers (r0..pc), rim0,rim1, flags register, and floating point registers
+.word _startup
+_ivt:
+.zero 128 ; Interrupt vector table
 
-ctx2:
-.zero 204 ; registers (r0..pc), rim0,rim1, flags register, and floating point registers
-.text
+_intrHCtx:
+.zero 232
 
-extern _fooFunc;
-
-public _startup
+extern _main
 _startup:
- 
-	mov r0, 1111111
 
+	; Setup stack
 	lea sp, [_stackH]
-	fpush {f0-f15}
-	fpop {f0- f15}
-
-	bl _fooFunc
-	loop:
-	mov r0, 1
-	add r0,r0,3
-	add r0,r0,8
-	b loop
-	hlt
-	hlt
 	
-
-
-public _interruptH
-_interruptH:
-	mov r4,10
-	loop2:
-	b loop2
-
-public _other
-_other:
-	lea r10, [ctx]
-	ctxswitch [r10], [r10]
-
+	.L10:
+	bl .L11
+	.word .L10 - .L11
+	
+	b .L10
+	bl _main
+	infiniteLoop:
+	hlt
+	b infiniteLoop
+	.L11:
+	
 .data
 	_stackL:
 	.zero 1024
@@ -48,9 +30,3 @@ _other:
 
 	_hello:
 	.string "Hello World!"
-	_hello2:
-	.string "Hello World!"
-	_regs:
-	.zero 204
-
-

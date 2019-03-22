@@ -1,13 +1,13 @@
 {
 	"format": "Workspace",
 	"version": 1,
-	"name": "scratch",
 	"projects": [
 		".\\scratchpad\\scratchpad.apcpuprj",
 		".\\dummy\\dummy.apcpuprj",
 		".\\dummy2\\dummy2.apcpuprj",
-		".\\helloworld\\helloworld.apcpuprj"
-	],
-	"startup_project": "helloworld",
-	"active_configuration": "Debug"
+		".\\helloworld\\helloworld.apcpuprj",
+		".\\dwarf\\dwarf.apcpuprj",
+		".\\boot\\boot.apcpuprj",
+		".\\debugger\\debugger.apcpuprj"
+	]
 }

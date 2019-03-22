@@ -1,7 +1,6 @@
 {
 	"format": "Project",
 	"version": 1,
-	"name": "dummy2",
 	"type": 1,
 	"globalconfiguration": {
 		"name": "Global",

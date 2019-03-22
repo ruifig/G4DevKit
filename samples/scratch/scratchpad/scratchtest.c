@@ -1,6 +1,4 @@
-#include "scratchtest.h"
-#include "misc.h"
-#include "dummy.h"
+
 
 typedef struct
 {
@@ -8,27 +6,16 @@ typedef struct
 	int b;
 } Foo;
 
-int derp(int a)
-{
-	return fromDummy(a, a);
-}
+int gVar1;
+int* gVar2 = &gVar1;
+void testFoo(const Foo*);
 
-int derp2(void)
-{
-	return 0;
-}
-
-void someFunc()
-{
-}
-
-int fooFunc()
+int main(void)
 {
 	Foo f;
-	derp(1);
-	derp2();
-	derp3(1,2,3);
-	someFunc();
-	return f.b;
+	f.a = 1;
+	f.b = 2;
+	testFoo(&f);
+	testFoo(&f);
+	return 0;
 }
-

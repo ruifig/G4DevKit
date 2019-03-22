@@ -1,4 +1,4 @@
-#include "scratchtest.h"
+#include "dummy.h"
 
 int fromDummy(int a, int b)
 {
@@ -7,7 +7,6 @@ int fromDummy(int a, int b)
 
 int main(void)
 {
-	return;
 	return 0;
 }
 

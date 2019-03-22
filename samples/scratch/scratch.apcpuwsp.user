@@ -1,0 +1,21 @@
+{
+	"format": "Workspace user file",
+	"version": 1,
+	"startup_project": "debugger",
+	"active_configuration": "Debug",
+	"breakpoints": [
+		{
+			"file": ".\\debugger\\debugger.c",
+			"line": 52,
+			"enabled": true
+		},
+		{
+			"file": ".\\debugger\\debugger.c",
+			"line": 74,
+			"enabled": true
+		}
+	],
+	"watches": [
+
+	]
+}

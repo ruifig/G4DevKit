@@ -1,7 +1,6 @@
 {
 	"format": "Project",
 	"version": 1,
-	"name": "helloworld",
 	"type": 1,
 	"globalconfiguration": {
 		"name": "Global",
@@ -48,6 +47,10 @@
 		},
 		{
 			"path": ".\\misc.asm",
+			"bootfile": false
+		},
+		{
+			"path": ".\\misc3.c",
 			"bootfile": false
 		}
 	]

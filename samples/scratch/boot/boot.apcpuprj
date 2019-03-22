@@ -17,18 +17,18 @@
 		{
 			"name": "Debug",
 			"includePaths": [
-				"$(SolutionDir)dummy"
+
 			],
 			"defines": [
 				"DEBUG"
 			],
-			"compilerOptions": "-c99 -O2 -g -size -unroll-size=0",
+			"compilerOptions": "-c99 -O2 -g -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153",
 			"linkerextralibs": ""
 		},
 		{
 			"name": "Release",
 			"includePaths": [
-				"$(SolutionDir)dummy"
+
 			],
 			"defines": [
 				"NDEBUG"
@@ -38,20 +38,12 @@
 		}
 	],
 	"dependencies": [
-		"dummy"
+
 	],
 	"files": [
 		{
-			"path": ".\\scratchpad.asm",
+			"path": ".\\boot.asm",
 			"bootfile": true
-		},
-		{
-			"path": ".\\scratchtest.c",
-			"bootfile": false
-		},
-		{
-			"path": ".\\small.asm",
-			"bootfile": false
 		}
 	]
 }

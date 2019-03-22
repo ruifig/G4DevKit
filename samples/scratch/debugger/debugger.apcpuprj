@@ -1,7 +1,7 @@
 {
 	"format": "Project",
 	"version": 1,
-	"type": 2,
+	"type": 1,
 	"globalconfiguration": {
 		"name": "Global",
 		"includePaths": [
@@ -17,18 +17,18 @@
 		{
 			"name": "Debug",
 			"includePaths": [
-				"$(SolutionDir)dummy"
+
 			],
 			"defines": [
 				"DEBUG"
 			],
-			"compilerOptions": "-c99 -O2 -g -size -unroll-size=0",
+			"compilerOptions": "-c99 -O0 -g -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153",
 			"linkerextralibs": ""
 		},
 		{
 			"name": "Release",
 			"includePaths": [
-				"$(SolutionDir)dummy"
+
 			],
 			"defines": [
 				"NDEBUG"
@@ -38,19 +38,27 @@
 		}
 	],
 	"dependencies": [
-		"dummy"
+		"boot"
 	],
 	"files": [
 		{
-			"path": ".\\scratchpad.asm",
-			"bootfile": true
-		},
-		{
-			"path": ".\\scratchtest.c",
+			"path": ".\\debugger.c",
 			"bootfile": false
 		},
 		{
-			"path": ".\\small.asm",
+			"path": ".\\func.h",
+			"bootfile": false
+		},
+		{
+			"path": ".\\misc.c",
+			"bootfile": false
+		},
+		{
+			"path": ".\\misc.h",
+			"bootfile": false
+		},
+		{
+			"path": ".\\misc_aux.asm",
 			"bootfile": false
 		}
 	]

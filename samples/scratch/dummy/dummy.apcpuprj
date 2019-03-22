@@ -1,8 +1,7 @@
 {
 	"format": "Project",
 	"version": 1,
-	"name": "dummy",
-	"type": 2,
+	"type": 1,
 	"globalconfiguration": {
 		"name": "Global",
 		"includePaths": [
@@ -39,7 +38,7 @@
 		}
 	],
 	"dependencies": [
-
+		"boot"
 	],
 	"files": [
 		{
