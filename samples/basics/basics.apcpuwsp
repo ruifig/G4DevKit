@@ -1,7 +1,6 @@
 {
 	"format": "Workspace",
 	"version": 1,
-	"name": "basics",
 	"projects": [
 		".\\helloworld\\helloworld.apcpuprj",
 		".\\contextswitch\\contextswitch.apcpuprj",
@@ -17,7 +16,5 @@
 		".\\contextswitch_c\\contextswitch_c.apcpuprj",
 		".\\mmu\\mmu.apcpuprj",
 		"..\\..\\apcpusdk\\testlib\\testlib.apcpuprj"
-	],
-	"startup_project": "contextswitch_c",
-	"active_configuration": "Debug"
+	]
 }

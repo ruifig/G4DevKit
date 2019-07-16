@@ -1,5 +1,6 @@
 #include "misc.h"
 
+#if 0
 char* gScreenAddr;
 
 void initMisc(void)
@@ -20,3 +21,5 @@ void printAtXy(int x, int y, const char* str)
 		ptr++; str++;
 	}
 }
+
+#endif

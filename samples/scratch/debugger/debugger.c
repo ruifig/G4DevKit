@@ -1,12 +1,45 @@
 #include "misc.h"
 #include "func.h"
 
+#define NULL 0x0
+
+void func1(int a, char (*ptr)(float, double))
+{
+	a = 1;
+}
+
+char func2(float,double)
+{
+	return 0;
+}
+
+int testFunctionPointer(void (*func_ptr)(int, char (*)(float,double)))
+{
+	if (func_ptr)
+		func_ptr(1, &func2);
+	return 0;
+}
+
+int main(int argc, const char** argv)
+{
+	return testFunctionPointer(&func1);
+}
+
+#if 0
 int g1,g2,g3,g4;
+
+struct InnerStruct
+{
+	const char *aa;
+	const char *bb;
+};
 
 struct Struct
 {
 	int a;
-	const char* b;
+	const char* bz;
+	struct InnerStruct inner1;
+	struct InnerStruct* inner2;
 };
 
 void testTempQualifiers(const char* p1, char* const p2, const char** const p3)
@@ -75,14 +108,34 @@ int testFunctionPtr(float (*pf) (char*, int))
 
 int testStruct(const struct Struct* a)
 {
+	const int* ptr1 = 0x2; // constant object
+	int * const ptr2 = 0x2; // constant pointer
 	return 0;
 }
+
+struct InnerStruct inner2;
 
 int testEnum(enum TestEnum1 a, TestEnum2 b)
 {
 	struct Struct s;
+	
+	int* array4[2] = {0x100, 0x200};
+	int array1[1];
+	int array2[10] = {0,1,2,3,4,5,6,7,8,9};
+	struct Struct array3[2];
+
+	array3[1].bz = "array3 aa string";
+	array3[1].inner1.bb = "array3 inner 1 bb string";
+	
+	inner2.aa = "Inner2 aa";
+	inner2.bb = "Inner2 bb";
+	
 	s.a = 10;
-	s.b = "Struct string";
+	s.bz = "Struct string";
+	s.inner1.aa = "Inner aa";
+	s.inner1.bb = "Inner bb";
+	array4[0] = &s.a;
+	s.inner2 = &inner2;
 	testStruct(&s);
 	return 0;
 }
@@ -93,6 +146,24 @@ int testPointers(
 	unsigned short* c, signed short* d,
 	unsigned int* e, signed int* f)
 {
+
+	struct Node nodes[5];
+	for(int i=0; i<5; i++)
+	{
+		nodes[i].val = i;
+		nodes[i].previous = i==0 ? NULL: &nodes[i-1];
+		nodes[i].next= i==4 ? NULL: &nodes[i+1];
+	}
+	
+	int dummy = 0;
+	dummy = 1;
+	dummy = 2;
+	dummy = 3;
+	dummy = 4;
+	dummy = 5;
+	dummy = 6;
+	dummy = 7;
+	
 	return testEnum(E1Val1, E2Val2);
 }
 
@@ -131,3 +202,4 @@ int main(int argc, const char** argv)
 	return 0;
 }
 
+#endif
