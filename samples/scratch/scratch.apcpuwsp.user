@@ -6,16 +6,24 @@
 	"breakpoints": [
 		{
 			"file": ".\\debugger\\debugger.c",
-			"line": 18,
+			"line": 13,
 			"enabled": true
 		},
 		{
 			"file": ".\\debugger\\debugger.c",
-			"line": 66,
+			"line": 40,
 			"enabled": true
 		}
 	],
 	"watches": [
-
+		{
+			"name": "foo"
+		},
+		{
+			"name": "argc"
+		},
+		{
+			"name": "gVar2"
+		}
 	]
 }

@@ -1,28 +1,49 @@
 #include "misc.h"
 #include "func.h"
 
+struct Foo
+{
+	int a;
+	int b;
+};
+
+void func1(struct Foo* foo)
+{
+	static int gVar3 = 1000;
+	foo->a = foo->b;
+	foo->b = gVar3;
+}
+
+int gVar1=10;
+struct Foo gVar2;
+float gVar3 = 0.15;
+
 #define NULL 0x0
 
-void func1(int a, char (*ptr)(float, double))
+#if 0
+
+
+int func1(void)
 {
-	a = 1;
+	return 1;
 }
 
-char func2(float,double)
+int func2(void)
 {
-	return 0;
+	return 2;
 }
-
-int testFunctionPointer(void (*func_ptr)(int, char (*)(float,double)))
-{
-	if (func_ptr)
-		func_ptr(1, &func2);
-	return 0;
-}
+#endif
 
 int main(int argc, const char** argv)
 {
-	return testFunctionPointer(&func1);
+	struct Foo foo;
+	foo.a = 1;
+	foo.b = 2;
+	gVar1 = 20;
+	gVar2.a=100;
+	gVar2.b=200;
+	func1(&foo);
+	return 0;
 }
 
 #if 0
