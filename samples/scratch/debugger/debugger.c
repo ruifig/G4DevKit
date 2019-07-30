@@ -36,13 +36,17 @@ int func2(void)
 
 int main(int argc, const char** argv)
 {
-	struct Foo foo;
-	foo.a = 1;
-	foo.b = 2;
-	gVar1 = 20;
-	gVar2.a=100;
-	gVar2.b=200;
-	func1(&foo);
+	func1(0x0);
+	while(1)
+	{
+		struct Foo foo;
+		foo.a = 1;
+		foo.b = 2;
+		gVar1 = 20;
+		gVar2.a=100;
+		gVar2.b=200;
+		func1(&foo);
+	}
 	return 0;
 }
 

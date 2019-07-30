@@ -6,12 +6,27 @@
 	"breakpoints": [
 		{
 			"file": ".\\debugger\\debugger.c",
-			"line": 13,
+			"line": 39,
 			"enabled": true
 		},
 		{
 			"file": ".\\debugger\\debugger.c",
-			"line": 40,
+			"line": 41,
+			"enabled": false
+		},
+		{
+			"file": ".\\debugger\\debugger.c",
+			"line": 43,
+			"enabled": true
+		},
+		{
+			"file": ".\\debugger\\debugger.c",
+			"line": 47,
+			"enabled": false
+		},
+		{
+			"file": ".\\debugger\\debugger.c",
+			"line": 49,
 			"enabled": true
 		}
 	],
