@@ -1,5 +1,6 @@
-#if 0
-void testFuncInHeader(void)
+#if 1
+int funcInFuncH(int a, int b)
 {
+	return a + b;
 }
 #endif

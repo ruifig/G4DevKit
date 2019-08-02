@@ -1,4 +1,4 @@
-#include "misc.h"
+//#include "misc.h"
 #include "func.h"
 
 struct Foo
@@ -10,8 +10,12 @@ struct Foo
 void func1(struct Foo* foo)
 {
 	static int gVar3 = 1000;
-	foo->a = foo->b;
+	foo->a = foo->b + funcInFuncH(1,2);
 	foo->b = gVar3;
+}
+
+static void funcInMiscC(void)
+{
 }
 
 int gVar1=10;
@@ -21,7 +25,6 @@ float gVar3 = 0.15;
 #define NULL 0x0
 
 #if 0
-
 
 int func1(void)
 {
@@ -36,7 +39,11 @@ int func2(void)
 
 int main(int argc, const char** argv)
 {
-	func1(0x0);
+	funcInMiscC();
+	struct Foo f;
+	f.a = 1;
+	f.b = 100;
+	func1(&f);
 	while(1)
 	{
 		struct Foo foo;

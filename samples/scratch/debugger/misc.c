@@ -1,5 +1,11 @@
+#include "other.h"
 #include "misc.h"
 
+int funcInMiscC(int a, int b)
+{
+	return funcInMiscH(1,2);
+}
+	
 #if 0
 char* gScreenAddr;
 

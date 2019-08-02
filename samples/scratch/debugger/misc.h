@@ -7,4 +7,9 @@ void debugBreak(void);
 void initMisc(void);
 void printAtXy(int x, int y, const char* str);
 
+int funcInMiscH(int a, int b)
+{
+	return funcInOtherH(a, b);
+}
+	
 #endif

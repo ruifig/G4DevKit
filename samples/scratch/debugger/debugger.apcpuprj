@@ -22,7 +22,7 @@
 			"defines": [
 				"DEBUG"
 			],
-			"compilerOptions": "-c99 -O0 -g -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153",
+			"compilerOptions": "-vv -c99 -O0 -g -size -unroll-size=0 -dontwarn=323 -dontwarn=208 -dontwarn=153",
 			"linkerextralibs": ""
 		},
 		{
@@ -59,6 +59,10 @@
 		},
 		{
 			"path": ".\\misc_aux.asm",
+			"bootfile": false
+		},
+		{
+			"path": ".\\other.h",
 			"bootfile": false
 		}
 	]
