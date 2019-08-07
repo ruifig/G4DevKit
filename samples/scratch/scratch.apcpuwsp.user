@@ -2,21 +2,16 @@
 	"format": "Workspace user file",
 	"version": 1,
 	"startup_project": "debugger",
-	"active_configuration": "Release",
+	"active_configuration": "Debug",
 	"breakpoints": [
 		{
 			"file": ".\\debugger\\debugger.c",
-			"line": 11,
-			"enabled": true
-		},
-		{
-			"file": ".\\debugger\\debugger.c",
-			"line": 13,
-			"enabled": true
-		},
-		{
-			"file": ".\\debugger\\debugger.c",
 			"line": 42,
+			"enabled": false
+		},
+		{
+			"file": ".\\debugger\\debugger.c",
+			"line": 44,
 			"enabled": true
 		},
 		{
@@ -27,7 +22,7 @@
 		{
 			"file": ".\\debugger\\debugger.c",
 			"line": 52,
-			"enabled": true
+			"enabled": false
 		}
 	],
 	"watches": [

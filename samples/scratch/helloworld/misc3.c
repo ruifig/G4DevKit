@@ -1,5 +1,5 @@
 	derppabc
-#if 1
+#if 0
 const char* getString2(void)
 {
 	return "_getString2";

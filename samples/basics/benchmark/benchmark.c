@@ -11,7 +11,7 @@ int line=1;
 u32* mmuTable;
 u32 mmuTableEntries;
 
-void doWork()
+void doWork(void)
 {
 	for(int x=0; x<(SCR_XRES-30); x++)
 		for(int y=0; y<SCR_YRES; y++)

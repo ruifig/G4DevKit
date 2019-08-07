@@ -4,7 +4,11 @@
 	"startup_project": "benchmark",
 	"active_configuration": "Debug",
 	"breakpoints": [
-
+		{
+			"file": ".\\benchmark\\benchmark.c",
+			"line": 19,
+			"enabled": true
+		}
 	],
 	"watches": [
 

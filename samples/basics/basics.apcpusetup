@@ -26,7 +26,7 @@
 					"disks" : [
 						{
 							"slot" : 0,
-							"guid" : "E090E45641642942FC8B6EAEDB6B32ED",
+							"guid" : "90A4030C49E96596D7003B91A26685A0"
 						},
 						{
 							"slot" : 1,
@@ -36,7 +36,7 @@
 						},
 						{
 							"slot" : 2,
-							"guid" : "E090E45641642942FC8B6EAEDB6B32ED",
+							"guid" : "CF8D7500462033FA3C461EBF4BCF1378",
 							"duplicate" : "temporary"
 						}
 					]
