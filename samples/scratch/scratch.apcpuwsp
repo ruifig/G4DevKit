@@ -8,6 +8,7 @@
 		".\\helloworld\\helloworld.apcpuprj",
 		".\\dwarf\\dwarf.apcpuprj",
 		".\\boot\\boot.apcpuprj",
-		".\\debugger\\debugger.apcpuprj"
+		".\\debugger\\debugger.apcpuprj",
+		".\\test\\test.apcpuprj"
 	]
 }

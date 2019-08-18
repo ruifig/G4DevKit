@@ -2,6 +2,7 @@
 	"format": "Project",
 	"version": 1,
 	"type": 1,
+	"enabled": true,
 	"globalconfiguration": {
 		"name": "Global",
 		"includePaths": [
@@ -41,6 +42,9 @@
 
 	],
 	"files": [
-
+		{
+			"path": ".\\test2.c",
+			"bootfile": false
+		}
 	]
 }
