@@ -32,9 +32,9 @@ _startup:
 	;
 
 	; Pointer to the screen position to write to
-	bl _getString2
+	; bl _getString2
 	mov r1, r0
-	;lea r1, [_hello] ; Pointer to string to print
+	lea r1, [_hello] ; Pointer to string to print
 	
 	ldrub r2, [r1] ; Get the first character
 

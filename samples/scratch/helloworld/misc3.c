@@ -1,4 +1,4 @@
-	derppabc
+
 #if 0
 const char* getString2(void)
 {
