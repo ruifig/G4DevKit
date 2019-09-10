@@ -1,7 +1,7 @@
 {
 	"format": "Workspace user file",
 	"version": 1,
-	"startup_project": "debugger",
+	"startup_project": "helloworld",
 	"active_configuration": "Debug",
 	"breakpoints": [
 		{
