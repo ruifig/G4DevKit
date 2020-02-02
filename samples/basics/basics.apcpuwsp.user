@@ -6,11 +6,32 @@
 	"breakpoints": [
 		{
 			"file": ".\\benchmark\\benchmark.c",
-			"line": 19,
+			"line": 28,
+			"enabled": true
+		},
+		{
+			"file": ".\\benchmark\\benchmark.c",
+			"line": 43,
+			"enabled": true
+		},
+		{
+			"file": ".\\hardware\\hwscreen.c",
+			"line": 34,
 			"enabled": true
 		}
 	],
 	"watches": [
-
+		{
+			"name": "y"
+		},
+		{
+			"name": "mmuTableEntries"
+		},
+		{
+			"name": "ramAmount"
+		},
+		{
+			"name": "scr"
+		}
 	]
 }
