@@ -1,3 +1,4 @@
+**This Repository unused. New work is happening in https://github.com/Crazygaze/G4Devkit instead**
 
 # What's G4
 
